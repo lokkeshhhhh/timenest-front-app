@@ -1,18 +1,23 @@
 {
   "expo": {
-    "name": "timenest-front-app",
-    "slug": "timenest-front-app",
+    "name": "Arcana",
+    "slug": "arcana",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "timenestfrontapp",
+    "icon": "./assets/images/arcana-icon.png",
+    "splash": {
+      "image": "./assets/images/arcana-splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0A"
+    },
+    "scheme": "arcana",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0A0A0A",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -29,11 +34,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/arcana-splash.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#0A0A0A"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

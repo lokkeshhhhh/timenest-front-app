@@ -1,235 +1,139 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Appearance,
-  Switch
-} from 'react-native';
-import { useColorScheme } from '@/components/useColorScheme';
-import { Stack } from 'expo-router';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+import { AuthService } from '../../services/auth';
+import { AuthCard } from '../../components/ui/AuthCard';
+import { PrimaryButton } from '../../components/ui/PrimaryButton';
+import { AppTextInput } from '../../components/ui/AppTextInput';
+import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
+import { ArcanaLogo } from '../../components/brand/ArcanaLogo';
+import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
+import { ScrollView } from 'react-native';
 
 export default function LoginScreen() {
-  const colorScheme = useColorScheme() ?? 'light';
-  const isDark = colorScheme === 'dark';
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const toggleTheme = () => {
-    Appearance.setColorScheme(isDark ? 'light' : 'dark');
-  };
+  const handleLogin = async () => {
+    if (!email || !password) return;
+    
+    setLoading(true);
+    try {
+      const response = await AuthService.login(email, password);
+      const data = response.data || response;
+      
+      if (data.requires_2fa || data.status === '2fa_required') {
+        router.push({ pathname: '/(auth)/2fa', params: { tempToken: data.temp_token } });
+      } else if (data.requires_workspace_selection) {
+        router.push({ pathname: '/(auth)/workspace-select', params: { tempToken: data.temp_token } });
+      } else {
+        // Normal success
+        // useAuthStore.getState().setToken(data.access_token);
+        router.replace('/(tabs)/');
+      }
+    } catch (e: any) {
+      const errData = e.response?.data || {};
+      
+      if (errData.requires_workspace_selection) {
+        router.push({ 
+          pathname: '/(auth)/workspace-select', 
+          params: { 
+            tempToken: errData.temp_token,
+            workspaces: JSON.stringify(errData.workspaces || [])
+          } 
+        });
+        return;
+      }
 
-  const handleLogin = () => {
-    console.log('Login pressed', email, password);
+      if (e.response?.status === 403 && errData.message?.includes('verified')) {
+        Alert.alert('Unverified Account', 'Please check your email to verify your account.');
+      } else {
+        Alert.alert('Login Failed', errData.message || e.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <Stack.Screen options={{ headerShown: false }} />
-      
-      {/* Top Bar with Theme Toggle */}
-      <View style={styles.topBar}>
-        <Text style={[styles.themeText, isDark ? styles.textDark : styles.textLight]}>
-          {isDark ? 'Dark Mode' : 'Light Mode'}
-        </Text>
-        <Switch
-          value={isDark}
-          onValueChange={toggleTheme}
-          trackColor={{ false: '#767577', true: '#3B82F6' }}
-          thumbColor={isDark ? '#fff' : '#f4f3f4'}
-        />
+    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
+      {/* Hero Header Area (Dark) */}
+      <View className="relative w-full min-h-[300px] justify-center px-8 pt-16 pb-8 overflow-hidden">
+        <ArcanaHeroBackground />
+        <View className="z-10 mt-10">
+          <Text className="text-textOnDark text-[24px] font-serif-bold mb-4">Arcana</Text>
+          <Text className="text-textOnDark text-[32px] font-serif-bold mb-4 leading-9">Welcome to Arcana</Text>
+          <Text className="text-textSecondaryDark text-body leading-6 mb-6">
+            Arcana helps developers to build organized and well coded dashboards full of beautiful and rich modules. Join us and start building your application today.
+          </Text>
+          <Text className="text-textOnDark text-caption font-serif-semibold">
+            More than 17k people joined us, it's your turn
+          </Text>
+        </View>
       </View>
 
-      {/* Login Form Container */}
-      <View style={styles.formContainer}>
-        <View style={styles.headerContainer}>
-          <Text style={[styles.title, isDark ? styles.textDark : styles.textLight]}>
-            Welcome Back
-          </Text>
-          <Text style={[styles.subtitle, isDark ? styles.subtextDark : styles.subtextLight]}>
-            Sign in to continue
-          </Text>
+      {/* Form Area (Light) */}
+      <View className="bg-surfaceLight rounded-[40px] mx-4 px-6 py-10 shadow-2xl shadow-black/20 mb-8 mt-2">
+        <View className="flex-row items-center justify-center mb-10 mt-2">
+          <ArcanaLogo size={46} />
+          <Text className="text-textOnLight text-[32px] font-serif-bold ml-3 mt-1">Arcana</Text>
         </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={[styles.label, isDark ? styles.textDark : styles.textLight]}>Email</Text>
-          <TextInput
-            style={[
-              styles.input,
-              isDark ? styles.inputDark : styles.inputLight,
-            ]}
-            placeholder="Enter your email"
-            placeholderTextColor={isDark ? '#aaa' : '#666'}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={[styles.label, isDark ? styles.textDark : styles.textLight]}>Password</Text>
-          <TextInput
-            style={[
-              styles.input,
-              isDark ? styles.inputDark : styles.inputLight,
-            ]}
-            placeholder="Enter your password"
-            placeholderTextColor={isDark ? '#aaa' : '#666'}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-        </View>
-
-        <TouchableOpacity style={styles.forgotPasswordButton}>
-          <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Sign In</Text>
-        </TouchableOpacity>
         
-        <View style={styles.signupContainer}>
-          <Text style={[styles.signupText, isDark ? styles.textDark : styles.textLight]}>
-            Don't have an account?{' '}
-          </Text>
-          <TouchableOpacity>
-            <Text style={styles.signupLink}>Sign Up</Text>
+        <View className="mb-6">
+          <Text className="text-textOnLight text-subheading font-serif-bold">Sign in</Text>
+        </View>
+        
+        <AppTextInput
+          label="Email Address"
+          placeholder="johndoe@gmail.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        
+        <AppTextInput
+          label="Password"
+          placeholder="••••••"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        
+        <View className="flex-row justify-between items-center mb-8 w-full px-1">
+          <TouchableOpacity className="flex-row items-center">
+            <View className="w-4 h-4 rounded border border-border mr-2 items-center justify-center bg-surfaceGray" />
+            <Text className="text-textSecondaryLight text-label">Remember me</Text>
           </TouchableOpacity>
         </View>
+        
+        <PrimaryButton
+          title="Sign in"
+          onPress={handleLogin}
+          loading={loading}
+          disabled={!email || !password}
+        />
+        
+        <View className="flex-row mt-6">
+          <Text className="text-textSecondaryLight text-label">Don't have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/account-type')}>
+            <Text className="text-textOnLight text-label font-serif-bold">Sign up</Text>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity className="mt-2 mb-8">
+          <Text className="text-textSecondaryLight text-label">Forgot Password</Text>
+        </TouchableOpacity>
+
+        <View className="items-center mb-4">
+          <SocialLoginRow 
+            onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
+            onApplePress={() => Alert.alert('Apple', 'Apple OAuth pressed')}
+            onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
+          />
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  containerLight: {
-    backgroundColor: '#F9FAFB',
-  },
-  containerDark: {
-    backgroundColor: '#111827',
-  },
-  topBar: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 20,
-  },
-  themeText: {
-    marginRight: 10,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  formContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    maxWidth: 500,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  headerContainer: {
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  inputLight: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#E5E7EB',
-    color: '#111827',
-  },
-  inputDark: {
-    backgroundColor: '#1F2937',
-    borderColor: '#374151',
-    color: '#F9FAFB',
-  },
-  forgotPasswordButton: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    color: '#3B82F6',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  loginButton: {
-    backgroundColor: '#3B82F6',
-    height: 50,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-    shadowColor: '#3B82F6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-  },
-  loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  signupContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signupText: {
-    fontSize: 14,
-  },
-  signupLink: {
-    color: '#3B82F6',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  textLight: {
-    color: '#111827',
-  },
-  textDark: {
-    color: '#F9FAFB',
-  },
-  subtextLight: {
-    color: '#6B7280',
-  },
-  subtextDark: {
-    color: '#9CA3AF',
-  }
-});
