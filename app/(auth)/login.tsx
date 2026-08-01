@@ -9,9 +9,12 @@ import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
 import { ArcanaLogo } from '../../components/brand/ArcanaLogo';
 import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
 import { ScrollView } from 'react-native';
+import { useAuthStore } from '../../store/authStore';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const setTempAuth = useAuthStore(state => state.setTempAuth);
+  const setAuth = useAuthStore(state => state.setAuth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,23 +30,20 @@ export default function LoginScreen() {
       if (data.requires_2fa || data.status === '2fa_required') {
         router.push({ pathname: '/(auth)/2fa', params: { tempToken: data.temp_token } });
       } else if (data.requires_workspace_selection) {
-        router.push({ pathname: '/(auth)/workspace-select', params: { tempToken: data.temp_token } });
+        setTempAuth(data.temp_token, data.workspaces || []);
+        router.push('/(auth)/workspace-select');
       } else {
         // Normal success
-        // useAuthStore.getState().setToken(data.access_token);
+        setAuth(data.access_token, data.user);
         router.replace('/(tabs)/');
       }
     } catch (e: any) {
       const errData = e.response?.data || {};
+      const meta = errData.meta || {};
       
-      if (errData.requires_workspace_selection) {
-        router.push({ 
-          pathname: '/(auth)/workspace-select', 
-          params: { 
-            tempToken: errData.temp_token,
-            workspaces: JSON.stringify(errData.workspaces || [])
-          } 
-        });
+      if (meta.requires_workspace_selection) {
+        setTempAuth(meta.temp_token, meta.workspaces || []);
+        router.push('/(auth)/workspace-select');
         return;
       }
 

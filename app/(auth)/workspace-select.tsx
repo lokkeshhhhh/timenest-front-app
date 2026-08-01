@@ -1,37 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Alert, ScrollView } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
 import { AuthCard } from '../../components/ui/AuthCard';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { SelectableCard } from '../../components/ui/SelectableCard';
+import { useAuthStore } from '../../store/authStore';
+import { useOrgStore } from '../../store/orgStore';
 
 export default function WorkspaceSelectScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const tempToken = params.tempToken as string;
   
-  const [workspaces, setWorkspaces] = useState<any[]>([]);
+  const { tempToken, tempWorkspaces, setAuth, clearTempAuth } = useAuthStore();
+  const setActiveOrg = useOrgStore(state => state.setActiveOrg);
+  
+  const workspaces = tempWorkspaces || [];
   const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (params.workspaces) {
-      try {
-        setWorkspaces(JSON.parse(params.workspaces as string));
-      } catch (e) {
-        console.error('Failed to parse workspaces', e);
-      }
-    }
-  }, [params.workspaces]);
+
 
   const handleSelect = async () => {
     if (!selectedWorkspace || !tempToken) return;
     
     setSubmitting(true);
     try {
-      const res = await AuthService.selectOrganization(tempToken as string, selectedWorkspace);
+      const res = await AuthService.selectOrganization(tempToken, selectedWorkspace);
+      const data = res.data || res;
       // Success, token issued
+      setAuth(data.access_token, data.user);
+      setActiveOrg(data.organization);
+      clearTempAuth();
       router.replace('/(tabs)/');
     } catch (e: any) {
       Alert.alert('Error', e.response?.data?.message || 'Failed to select organization');
