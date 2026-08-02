@@ -22,9 +22,15 @@ import { useSplashStore } from '../../store/splashStore';
 import { useColorScheme } from '../../components/useColorScheme';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 
-// Brand/accent hexes, mirrored from tailwind.config.js — react-native-svg props
-// can't consume Tailwind class names directly.
-const PRIMARY = '#4C49ED';
+// The app-wide accent, read directly from tailwind.config.js — the one place
+// that value lives. react-native-svg fill/stroke props can't consume Tailwind
+// class names, so this is a read of the same token, not a second copy of it:
+// change the color in tailwind.config.js and both Tailwind classes and this
+// import move together.
+const PRIMARY: string = require('../../tailwind.config.js').theme.extend.colors.primary;
+
+// Slide 1's own illustration accent — intentionally its previous purple, not
+// tied to the app-wide accent above (only slides 2/3 use their own colors too).
 const ACCENT = { primary: '#4C49ED', success: '#10B981', warning: '#FFAB2E' };
 
 // Illustrations: unDraw (MIT-licensed, free for commercial use, no attribution

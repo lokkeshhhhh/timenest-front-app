@@ -18,7 +18,7 @@ module.exports = {
         surfaceLight: '#FFFFFF',     // Compatibility alias
         surfaceGray: '#F5F7FB',      // Subtle off-white for inputs/inactive states
         
-        primary: '#4C49ED',          // Vibrant purple for buttons/actions
+        primary: '#3D2834',          // Deep wine/maroon — app-wide accent (buttons/actions)
         primaryDark: '#3C3B75',      // Deep indigo for headers
         primaryLight: '#F0EEFF',     // Lavender pastel for pills/active states
 
