@@ -19,9 +19,9 @@ export const OtpInput = ({ length = 6, value, onChangeText }: OtpInputProps) => 
       cells.push(
         <View
           key={i}
-          className={`w-12 h-14 bg-surfaceLight border-2 justify-center items-center rounded-otp shadow-sm shadow-black/5 ${isActive ? 'border-textOnLight' : 'border-border'}`}
+          className={`w-12 h-14 bg-surfaceLight dark:bg-white/10 border-2 justify-center items-center rounded-otp shadow-sm shadow-black/5 ${isActive ? 'border-textOnLight dark:border-textOnDark' : 'border-border dark:border-white/10'}`}
         >
-          <Text className="text-heading text-textOnLight font-serif-bold">{char}</Text>
+          <Text className="text-heading text-textOnLight dark:text-textOnDark font-serif-bold">{char}</Text>
         </View>
       );
     }

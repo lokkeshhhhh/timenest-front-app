@@ -12,6 +12,7 @@ interface AuthState {
   /** True once the persisted state has been read back from storage on this launch. */
   hydrated: boolean;
   setAuth: (token: string, user: any) => void;
+  setUser: (user: any) => void;
   setTempAuth: (tempToken: string, workspaces: any[]) => void;
   clearTempAuth: () => void;
   logout: () => void;
@@ -28,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
       hasSeenOnboarding: false,
       hydrated: false,
       setAuth: (token, user) => set({ token, user }),
+      setUser: (user) => set({ user }),
       setTempAuth: (tempToken, workspaces) => set({ tempToken, tempWorkspaces: workspaces }),
       clearTempAuth: () => set({ tempToken: null, tempWorkspaces: [] }),
       logout: () => set({ user: null, token: null, tempToken: null, tempWorkspaces: [] }),

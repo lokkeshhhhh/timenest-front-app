@@ -8,31 +8,40 @@ import { AppTextInput } from '../../components/ui/AppTextInput';
 import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
 import { AuthHeader } from '../../components/brand/AuthHeader';
 import { useAuthStore } from '../../store/authStore';
+import { applySessionData } from '../../utils/session';
 
 export default function LoginScreen() {
   const router = useRouter();
   const setTempAuth = useAuthStore(state => state.setTempAuth);
-  const setAuth = useAuthStore(state => state.setAuth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) return;
-    
+
     setLoading(true);
     try {
       const response = await AuthService.login(email, password);
       const data = response.data || response;
-      
+
       if (data.requires_2fa || data.status === '2fa_required') {
         router.push({ pathname: '/(auth)/2fa', params: { tempToken: data.temp_token } });
       } else if (data.requires_workspace_selection) {
         setTempAuth(data.temp_token, data.workspaces || []);
         router.push('/(auth)/workspace-select');
+      } else if (data.status === 'no_workspace') {
+        // ASSUMPTION: the backend issues no access_token at all for a user with
+        // zero organization memberships (see AuthService::resolveWorkspaceAndIssueTokens),
+        // so there is no session to hand to the tab shell here — surface it inline
+        // instead of silently calling setAuth(undefined, user).
+        Alert.alert(
+          'No workspace yet',
+          data.message || 'You may need an invitation to join an organization.'
+        );
       } else {
         // Normal success
-        setAuth(data.access_token, data.user);
+        applySessionData(data);
         router.replace('/(tabs)/');
       }
     } catch (e: any) {

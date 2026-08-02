@@ -49,6 +49,26 @@ export const AuthService = {
     const response = await api.get('/api/v1/auth/workspaces');
     return response.data;
   },
+
+  /** Refresh identity/organization/role/permissions without a full re-login. */
+  fetchMe: async () => {
+    const response = await api.get('/api/v1/auth/me');
+    return response.data;
+  },
+
+  switchOrganization: async (organizationUuid: string) => {
+    const response = await api.post('/api/v1/auth/switch-organization', { organization_uuid: organizationUuid });
+    return response.data;
+  },
+
+  changePassword: async (currentPassword: string, password: string, passwordConfirmation: string) => {
+    const response = await api.post('/api/v1/auth/change-password', {
+      current_password: currentPassword,
+      password,
+      password_confirmation: passwordConfirmation,
+    });
+    return response.data;
+  },
   
   validateInvitationToken: async (token: string) => {
     const response = await api.get(`/api/v1/invitations/validate/${token}`);

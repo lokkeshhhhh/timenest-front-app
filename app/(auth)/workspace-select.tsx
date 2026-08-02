@@ -7,7 +7,7 @@ import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { ImageSelectCard } from '../../components/ui/ImageSelectCard';
 import { AuthHeader } from '../../components/brand/AuthHeader';
 import { useAuthStore } from '../../store/authStore';
-import { useOrgStore } from '../../store/orgStore';
+import { applySessionData } from '../../utils/session';
 import { resolveAvatarUrl } from '../../utils/avatar';
 
 // Rotated across org cards so consecutive cards don't show the identical photo.
@@ -20,9 +20,8 @@ const WORKSPACE_PHOTOS = [
 export default function WorkspaceSelectScreen() {
   const router = useRouter();
   
-  const { tempToken, tempWorkspaces, setAuth, clearTempAuth } = useAuthStore();
-  const setActiveOrg = useOrgStore(state => state.setActiveOrg);
-  
+  const { tempToken, tempWorkspaces, clearTempAuth } = useAuthStore();
+
   const workspaces = tempWorkspaces || [];
   const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -37,8 +36,7 @@ export default function WorkspaceSelectScreen() {
       const res = await AuthService.selectOrganization(tempToken, selectedWorkspace);
       const data = res.data || res;
       // Success, token issued
-      setAuth(data.access_token, data.user);
-      setActiveOrg(data.organization);
+      applySessionData(data);
       clearTempAuth();
       router.replace('/(tabs)/');
     } catch (e: any) {

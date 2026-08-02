@@ -1,44 +1,35 @@
 import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { Tabs } from 'expo-router';
 
-import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useBootstrapSession } from '@/hooks/useBootstrapSession';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  useBootstrapSession();
+
+  const isDark = colorScheme === 'dark';
+  const activeTint = isDark ? '#FFFFFF' : '#3D2834';
+  const inactiveTint = isDark ? '#6B7280' : '#8FA0B5';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
+        tabBarActiveTintColor: activeTint,
+        tabBarInactiveTintColor: inactiveTint,
+        tabBarStyle: {
+          backgroundColor: isDark ? '#0A0A0A' : '#FFFFFF',
+          borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6',
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}>
       <Tabs.Screen
-        name="attendance"
+        name="index"
         options={{
-          title: 'Attendance',
+          title: 'Home',
           tabBarIcon: ({ color }) => (
-            <SymbolView name={{ ios: 'clock', android: 'schedule', web: 'schedule' }} tintColor={color} size={28} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="leave"
-        options={{
-          title: 'Leave',
-          tabBarIcon: ({ color }) => (
-            <SymbolView name={{ ios: 'calendar', android: 'event', web: 'event' }} tintColor={color} size={28} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="worklogs"
-        options={{
-          title: 'Worklogs',
-          tabBarIcon: ({ color }) => (
-            <SymbolView name={{ ios: 'doc.text', android: 'description', web: 'description' }} tintColor={color} size={28} />
+            <SymbolView name={{ ios: 'house.fill', android: 'home', web: 'home' }} tintColor={color} size={26} />
           ),
         }}
       />
@@ -47,7 +38,20 @@ export default function TabLayout() {
         options={{
           title: 'Chat',
           tabBarIcon: ({ color }) => (
-            <SymbolView name={{ ios: 'message', android: 'chat', web: 'chat' }} tintColor={color} size={28} />
+            <SymbolView name={{ ios: 'message.fill', android: 'chat', web: 'chat' }} tintColor={color} size={26} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{ ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' }}
+              tintColor={color}
+              size={26}
+            />
           ),
         }}
       />

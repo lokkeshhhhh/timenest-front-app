@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { TouchableOpacity, Text, View, Image } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, interpolateColor } from 'react-native-reanimated';
+import { useColorScheme } from '../useColorScheme';
 
 export interface CardBadge {
   label: string;
@@ -21,6 +22,8 @@ interface SelectableCardProps {
 }
 
 export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, avatarShape = 'square', badges, selected, onSelect }: SelectableCardProps) => {
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
   const progress = useSharedValue(selected ? 1 : 0);
 
   useEffect(() => {
@@ -31,14 +34,14 @@ export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, 
     const borderColor = interpolateColor(
       progress.value,
       [0, 1],
-      ['#E5E7EB', '#1A1A1A'] // border to textOnLight
+      isDark ? ['rgba(255,255,255,0.15)', '#FFFFFF'] : ['#E5E7EB', '#1A1A1A']
     );
     const backgroundColor = interpolateColor(
       progress.value,
       [0, 1],
-      ['#FFFFFF', '#F5F5F5'] // surfaceLight to surfaceGray
+      isDark ? ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.1)'] : ['#FFFFFF', '#F5F5F5']
     );
-    
+
     return {
       borderColor,
       backgroundColor,
@@ -46,10 +49,10 @@ export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, 
   });
 
   const renderBadge = (badge: CardBadge, idx: number) => {
-    let bgClass = 'bg-surfaceGray';
-    let textClass = 'text-textSecondaryLight';
-    
-    if (badge.color === 'primary') { bgClass = 'bg-primaryLight'; textClass = 'text-primary'; }
+    let bgClass = 'bg-surfaceGray dark:bg-white/10';
+    let textClass = 'text-textSecondaryLight dark:text-textSecondaryDark';
+
+    if (badge.color === 'primary') { bgClass = 'bg-primaryLight dark:bg-white/10'; textClass = 'text-primary dark:text-textOnDark'; }
     if (badge.color === 'warning') { bgClass = 'bg-warningBg'; textClass = 'text-warning'; }
     if (badge.color === 'success') { bgClass = 'bg-success/10'; textClass = 'text-success'; }
 
@@ -82,12 +85,12 @@ export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, 
           ) : null}
         </View>
         <View className="flex-1 pr-4 justify-center">
-          <Text className="text-body font-serif-bold text-textOnLight mb-1">{title}</Text>
+          <Text className="text-body font-serif-bold text-textOnLight dark:text-textOnDark mb-1">{title}</Text>
           {subtitle ? (
-            <Text className="text-label text-textSecondaryLight mb-1">{subtitle}</Text>
+            <Text className="text-label text-textSecondaryLight dark:text-textSecondaryDark mb-1">{subtitle}</Text>
           ) : null}
           {description ? (
-            <Text className="text-label text-textSecondaryLight leading-5">
+            <Text className="text-label text-textSecondaryLight dark:text-textSecondaryDark leading-5">
               {description}
             </Text>
           ) : null}
@@ -98,8 +101,8 @@ export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, 
           )}
         </View>
         <View className="pt-1">
-          <View className={`w-6 h-6 rounded-icon border-2 justify-center items-center ${selected ? 'border-textOnLight bg-textOnLight' : 'border-border bg-transparent'}`}>
-            {selected && <FontAwesome name="check" size={12} color="#FFFFFF" />}
+          <View className={`w-6 h-6 rounded-icon border-2 justify-center items-center ${selected ? 'border-textOnLight dark:border-textOnDark bg-textOnLight dark:bg-textOnDark' : 'border-border dark:border-white/20 bg-transparent'}`}>
+            {selected && <FontAwesome name="check" size={12} color={isDark ? '#1E2229' : '#FFFFFF'} />}
           </View>
         </View>
       </Animated.View>

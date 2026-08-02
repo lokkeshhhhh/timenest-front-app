@@ -14,11 +14,11 @@ export const AppTextInput = ({ label, error, secureTextEntry, ...props }: AppTex
 
   return (
     <View className="mb-5 w-full">
-      <Text className="text-label text-textOnLight font-serif-semibold mb-2 ml-1">{label}</Text>
+      <Text className="text-label text-textOnLight dark:text-textOnDark font-serif-semibold mb-2 ml-1">{label}</Text>
       <View className="relative w-full flex-row items-center">
         <TextInput
-          className={`flex-1 bg-surfaceGray text-body text-textOnLight rounded-input px-4 py-4 border ${
-            error ? 'border-error' : isFocused ? 'border-primary' : 'border-borderDark'
+          className={`flex-1 bg-surfaceGray dark:bg-white/10 text-body text-textOnLight dark:text-textOnDark rounded-input px-4 py-4 border ${
+            error ? 'border-error' : isFocused ? 'border-primary' : 'border-borderDark dark:border-white/10'
           } ${secureTextEntry ? 'pr-12' : ''}`}
           placeholderTextColor="#9CA3AF"
           secureTextEntry={isSecure}
