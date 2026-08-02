@@ -13,6 +13,7 @@ module.exports = {
       colors: {
         // Modern SaaS theme (Bento Grid / Vibrant Purple)
         background: '#F4F6FA',       // Light lavender-grey canvas
+        backgroundDark: '#0A0A0A',   // Near-black canvas (splash, dark-mode surfaces)
         surface: '#FFFFFF',          // Pure white cards
         surfaceLight: '#FFFFFF',     // Compatibility alias
         surfaceGray: '#F5F7FB',      // Subtle off-white for inputs/inactive states

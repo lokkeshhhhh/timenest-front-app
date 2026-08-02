@@ -6,8 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/images/arcana-icon.png",
     "splash": {
-      "image": "./assets/images/arcana-splash.png",
-      "resizeMode": "contain",
       "backgroundColor": "#0A0A0A"
     },
     "scheme": "arcana",
@@ -34,8 +32,6 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/arcana-splash.png",
-          "resizeMode": "contain",
           "backgroundColor": "#0A0A0A"
         }
       ],
