@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
 import { useAuthStore } from '@/store/authStore';
+import { useSplashStore } from '@/store/splashStore';
 import { AnimatedSplashScreen } from '@/components/splash/AnimatedSplashScreen';
 
 export {
@@ -61,7 +62,13 @@ function RootLayoutNav() {
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
         {splashVisible && (
-          <AnimatedSplashScreen ready={hydrated} onFinish={() => setSplashVisible(false)} />
+          <AnimatedSplashScreen
+            ready={hydrated}
+            onFinish={() => {
+              setSplashVisible(false);
+              useSplashStore.getState().setSplashDone(true);
+            }}
+          />
         )}
       </ThemeProvider>
     </SafeAreaProvider>

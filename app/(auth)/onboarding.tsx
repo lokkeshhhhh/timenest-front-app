@@ -1,9 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Svg, { Circle, Path } from 'react-native-svg';
 import Animated, {
+  Easing,
   Extrapolation,
   interpolate,
   runOnJS,
@@ -11,8 +12,12 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from 'react-native-reanimated';
 import { useAuthStore } from '../../store/authStore';
+import { useSplashStore } from '../../store/splashStore';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 
 // Brand accent hexes, mirrored from tailwind.config.js (primary/success/warning) —
@@ -78,6 +83,81 @@ const SLIDES = [
   },
 ];
 
+function SlideItem({
+  item,
+  index,
+  scrollX,
+  width,
+}: {
+  item: (typeof SLIDES)[number];
+  index: number;
+  scrollX: SharedValue<number>;
+  width: number;
+}) {
+  const float = useSharedValue(0);
+
+  useEffect(() => {
+    float.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1600, easing: Easing.inOut(Easing.sin) }),
+        withTiming(0, { duration: 1600, easing: Easing.inOut(Easing.sin) })
+      ),
+      -1,
+      false
+    );
+  }, [float]);
+
+  const bubbleStyle = useAnimatedStyle(() => {
+    const input = [(index - 1) * width, index * width, (index + 1) * width];
+    const focus = interpolate(scrollX.value, input, [0, 1, 0], Extrapolation.CLAMP);
+    return {
+      opacity: interpolate(focus, [0, 1], [0.35, 1]),
+      transform: [
+        { scale: interpolate(focus, [0, 1], [0.78, 1]) },
+        { translateY: interpolate(float.value, [0, 1], [0, -8]) },
+      ],
+    };
+  });
+
+  const textStyle = useAnimatedStyle(() => {
+    const input = [(index - 1) * width, index * width, (index + 1) * width];
+    const focus = interpolate(scrollX.value, input, [0, 1, 0], Extrapolation.CLAMP);
+    return {
+      opacity: interpolate(focus, [0, 1], [0, 1]),
+      transform: [{ translateY: interpolate(focus, [0, 1], [18, 0]) }],
+    };
+  });
+
+  return (
+    <View style={{ width }} className="items-center justify-center px-10">
+      <Animated.View
+        style={[
+          {
+            width: 160,
+            height: 160,
+            borderRadius: 32,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 40,
+            backgroundColor: `${item.color}1A`,
+          },
+          bubbleStyle,
+        ]}
+      >
+        <item.Illustration color={item.color} />
+      </Animated.View>
+      <Animated.View style={textStyle}>
+        <Text className="text-textOnLight dark:text-textOnDark text-[26px] font-serif-bold text-center mb-4 leading-8">
+          {item.title}
+        </Text>
+        <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-[16px] text-center leading-6">
+          {item.description}
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
+
 function Dot({ index, scrollX, width }: { index: number; scrollX: SharedValue<number>; width: number }) {
   const style = useAnimatedStyle(() => {
     const input = [(index - 1) * width, index * width, (index + 1) * width];
@@ -105,6 +185,21 @@ export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const listRef = useRef<any>(null);
   const scrollX = useSharedValue(0);
+  const screenEnter = useSharedValue(0);
+  const splashDone = useSplashStore((state) => state.splashDone);
+
+  useEffect(() => {
+    // Gated on the splash overlay actually finishing, not on mount: this screen
+    // mounts underneath the splash well before it fades away, so an
+    // on-mount timer would finish unseen, hidden behind the still-visible splash.
+    if (!splashDone) return;
+    screenEnter.value = withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) });
+  }, [splashDone, screenEnter]);
+
+  const screenEnterStyle = useAnimatedStyle(() => ({
+    opacity: screenEnter.value,
+    transform: [{ translateY: interpolate(screenEnter.value, [0, 1], [14, 0]) }],
+  }));
 
   const completeOnboarding = useCallback(() => {
     setHasSeenOnboarding(true);
@@ -129,67 +224,56 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark">
-      <View className="flex-row justify-end px-6 pt-2 z-10">
-        {currentIndex < SLIDES.length - 1 ? (
-          <TouchableOpacity
-            onPress={completeOnboarding}
-            className="px-4 py-2"
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-          >
-            <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-label font-serif-semibold">
-              Skip
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <View className="px-4 py-2 opacity-0" pointerEvents="none">
-            <Text>Skip</Text>
-          </View>
-        )}
-      </View>
-
-      <View className="flex-1 pt-4 pb-8">
-        <AnimatedFlatList
-          ref={listRef}
-          data={SLIDES}
-          horizontal
-          pagingEnabled
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item: (typeof SLIDES)[number]) => item.id}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          renderItem={({ item }: { item: (typeof SLIDES)[number] }) => (
-            <View style={{ width }} className="items-center justify-center px-10">
-              <View
-                className="w-40 h-40 rounded-[32px] items-center justify-center mb-10"
-                style={{ backgroundColor: `${item.color}1A` }}
-              >
-                <item.Illustration color={item.color} />
-              </View>
-              <Text className="text-textOnLight dark:text-textOnDark text-[26px] font-serif-bold text-center mb-4 leading-8">
-                {item.title}
+      <Animated.View style={[{ flex: 1 }, screenEnterStyle]}>
+        <View className="flex-row justify-end px-6 pt-2 z-10">
+          {currentIndex < SLIDES.length - 1 ? (
+            <TouchableOpacity
+              onPress={completeOnboarding}
+              className="px-4 py-2"
+              hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+            >
+              <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-label font-serif-semibold">
+                Skip
               </Text>
-              <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-[16px] text-center leading-6">
-                {item.description}
-              </Text>
+            </TouchableOpacity>
+          ) : (
+            <View className="px-4 py-2 opacity-0" pointerEvents="none">
+              <Text>Skip</Text>
             </View>
           )}
-        />
-      </View>
-
-      <View className="px-8 pb-12 pt-6">
-        <View className="flex-row justify-center items-center mb-8 h-4">
-          {SLIDES.map((_, index) => (
-            <Dot key={index} index={index} scrollX={scrollX} width={width} />
-          ))}
         </View>
 
-        <PrimaryButton
-          title={currentIndex === SLIDES.length - 1 ? 'Get Started' : 'Next'}
-          onPress={goNext}
-          showArrow
-        />
-      </View>
+        <View className="flex-1 pt-4 pb-8">
+          <AnimatedFlatList
+            ref={listRef}
+            data={SLIDES}
+            horizontal
+            pagingEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item: (typeof SLIDES)[number]) => item.id}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+            renderItem={({ item, index }: { item: (typeof SLIDES)[number]; index: number }) => (
+              <SlideItem item={item} index={index} scrollX={scrollX} width={width} />
+            )}
+          />
+        </View>
+
+        <View className="px-8 pb-12 pt-6">
+          <View className="flex-row justify-center items-center mb-8 h-4">
+            {SLIDES.map((_, index) => (
+              <Dot key={index} index={index} scrollX={scrollX} width={width} />
+            ))}
+          </View>
+
+          <PrimaryButton
+            title={currentIndex === SLIDES.length - 1 ? 'Get Started' : 'Next'}
+            onPress={goNext}
+            showArrow
+          />
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 }
