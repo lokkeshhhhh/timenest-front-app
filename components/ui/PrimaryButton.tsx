@@ -11,7 +11,7 @@ interface PrimaryButtonProps extends TouchableOpacityProps {
 export const PrimaryButton = ({ title, loading, disabled, showArrow, className = '', ...props }: PrimaryButtonProps) => {
   return (
     <TouchableOpacity
-      className={`bg-textOnLight rounded-button flex-row items-center justify-center py-4 w-full ${disabled || loading ? 'opacity-50' : ''} ${className}`}
+      className={`bg-primary rounded-button flex-row items-center justify-center py-4 w-full ${disabled || loading ? 'opacity-50' : ''} ${className}`}
       disabled={disabled || loading}
       activeOpacity={0.8}
       {...props}

@@ -8,8 +8,10 @@ import { AppTextInput } from '../../components/ui/AppTextInput';
 import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
 import { ArcanaLogo } from '../../components/brand/ArcanaLogo';
 import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -58,11 +60,24 @@ export default function LoginScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-background" contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
-      {/* Hero Header Area (Dark) */}
-      <View className="relative w-full min-h-[300px] justify-center px-8 pt-16 pb-8 overflow-hidden">
-        <ArcanaHeroBackground />
-        <View className="z-10 mt-10">
+    <View className="flex-1 bg-background">
+      {/* Premium Purple Hero Header */}
+      <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
+        <LinearGradient
+          colors={['#3C3B75', '#4C49ED', '#5D58A6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View className="absolute top-[-50px] right-[-50px] opacity-20">
+          <ArcanaHeroBackground size={400} />
+        </View>
+      </View>
+      
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
+        {/* Hero Header Text */}
+        <View className="relative w-full min-h-[260px] justify-center px-8 pt-16 pb-4">
+          <View className="z-10 mt-6">
           <Text className="text-textOnDark text-[24px] font-serif-bold mb-4">Arcana</Text>
           <Text className="text-textOnDark text-[32px] font-serif-bold mb-4 leading-9">Welcome to Arcana</Text>
           <Text className="text-textSecondaryDark text-body leading-6 mb-6">
@@ -72,11 +87,11 @@ export default function LoginScreen() {
             More than 17k people joined us, it's your turn
           </Text>
         </View>
-      </View>
+        </View>
 
-      {/* Form Area (Light) */}
-      <View className="bg-surfaceLight rounded-[40px] mx-4 px-6 py-10 shadow-2xl shadow-black/20 mb-8 mt-2">
-        <View className="flex-row items-center justify-center mb-10 mt-2">
+        {/* Form Area (Light) */}
+        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2">
+          <View className="flex-row items-center justify-center mb-10 mt-2">
           <ArcanaLogo size={46} />
           <Text className="text-textOnLight text-[32px] font-serif-bold ml-3 mt-1">Arcana</Text>
         </View>
@@ -107,6 +122,9 @@ export default function LoginScreen() {
             <View className="w-4 h-4 rounded border border-border mr-2 items-center justify-center bg-surfaceGray" />
             <Text className="text-textSecondaryLight text-label">Remember me</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+            <Text className="text-textOnLight text-label font-bold">Forget Password?</Text>
+          </TouchableOpacity>
         </View>
         
         <PrimaryButton
@@ -122,18 +140,16 @@ export default function LoginScreen() {
             <Text className="text-textOnLight text-label font-serif-bold">Sign up</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity className="mt-2 mb-8">
-          <Text className="text-textSecondaryLight text-label">Forgot Password</Text>
-        </TouchableOpacity>
 
-        <View className="items-center mb-4">
-          <SocialLoginRow 
-            onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
-            onApplePress={() => Alert.alert('Apple', 'Apple OAuth pressed')}
-            onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
-          />
+        <View className="items-center mb-4 mt-6">
+            <SocialLoginRow 
+              onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
+              onApplePress={() => Alert.alert('Apple', 'Apple OAuth pressed')}
+              onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
+            />
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

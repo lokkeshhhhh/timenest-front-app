@@ -1,0 +1,147 @@
+import React, { useState } from 'react';
+import { View, Text, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { AuthService } from '../../services/auth';
+import { AppTextInput } from '../../components/ui/AppTextInput';
+import { PrimaryButton } from '../../components/ui/PrimaryButton';
+import { ArcanaLogo } from '../../components/brand/ArcanaLogo';
+import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
+import { LinearGradient } from 'expo-linear-gradient';
+import { BlurView } from 'expo-blur';
+import { StyleSheet } from 'react-native';
+
+export default function ResetPasswordScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams();
+  const email = params.email as string;
+  const token = params.token as string;
+
+  const [password, setPassword] = useState('');
+  const [passwordConfirmation, setPasswordConfirmation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<any>({});
+
+  const validatePassword = () => {
+    let newErrors: any = {};
+    if (password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    else if (!/[A-Z]/.test(password)) newErrors.password = 'Must contain an uppercase letter';
+    else if (!/[0-9]/.test(password)) newErrors.password = 'Must contain a number';
+    else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) newErrors.password = 'Must contain a symbol';
+    
+    if (password !== passwordConfirmation) newErrors.password_confirmation = 'Passwords do not match';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!email || !token) {
+      Alert.alert('Error', 'Missing reset token or email. Please request a new reset link.');
+      return;
+    }
+    
+    if (!validatePassword()) return;
+    
+    setLoading(true);
+    try {
+      await AuthService.resetPassword({
+        email,
+        token,
+        password,
+        password_confirmation: passwordConfirmation
+      });
+      
+      Alert.alert('Success', 'Your password has been reset successfully. You can now sign in.', [
+        { text: 'Go to Login', onPress: () => router.replace('/(auth)/login') }
+      ]);
+    } catch (e: any) {
+      const errData = e.response?.data || {};
+      Alert.alert('Error', errData.message || 'Failed to reset password. The link may have expired.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!email || !token) {
+    return (
+      <View className="flex-1 bg-background justify-center items-center px-8">
+        <Text className="text-textOnLight text-heading font-serif-bold text-center mb-4">Invalid Link</Text>
+        <Text className="text-textSecondaryLight text-body text-center mb-8">
+          This password reset link is missing required information. Please request a new one.
+        </Text>
+        <PrimaryButton
+          title="Return to Login"
+          onPress={() => router.replace('/(auth)/login')}
+          className="w-full"
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-background">
+      {/* Premium Purple Hero Header */}
+      <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
+        <LinearGradient
+          colors={['#3C3B75', '#4C49ED', '#5D58A6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View className="absolute top-[-50px] right-[-50px] opacity-20">
+          <ArcanaHeroBackground size={400} />
+        </View>
+      </View>
+      
+      <ScrollView className="flex-1" bounces={false} contentContainerStyle={{ flexGrow: 1 }}>
+        {/* Hero Area (Dark) */}
+        <View className="relative w-full min-h-[200px] justify-center px-8 pt-20 pb-4">
+        
+        <Text className="text-textOnDark text-heading font-serif-bold mt-4">New Password</Text>
+        <Text className="text-textSecondaryDark text-body mt-2 leading-6 pr-4">
+          Create a new strong password for {email}.
+        </Text>
+        </View>
+
+        {/* Form Area (Light) */}
+        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2 flex-1">
+          <View className="flex-row items-center justify-center mb-10 mt-2">
+          <ArcanaLogo size={46} />
+        </View>
+
+        <AppTextInput
+          label="New Password"
+          placeholder="Enter a strong password"
+          value={password}
+          onChangeText={(val) => {
+            setPassword(val);
+            if (errors.password) setErrors({ ...errors, password: null });
+          }}
+          secureTextEntry
+          error={errors.password}
+        />
+
+        <AppTextInput
+          label="Confirm Password"
+          placeholder="Repeat new password"
+          value={passwordConfirmation}
+          onChangeText={(val) => {
+            setPasswordConfirmation(val);
+            if (errors.password_confirmation) setErrors({ ...errors, password_confirmation: null });
+          }}
+          secureTextEntry
+          error={errors.password_confirmation}
+        />
+
+        <PrimaryButton
+          title="Reset Password"
+          onPress={handleSubmit}
+          loading={loading}
+          disabled={loading || !password || !passwordConfirmation}
+          className="mt-6"
+        />
+        </View>
+      </ScrollView>
+    </View>
+  );
+}

@@ -5,12 +5,17 @@ import { AuthService } from '../../services/auth';
 import { AuthCard } from '../../components/ui/AuthCard';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { OtpInput } from '../../components/ui/OtpInput';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
+import { StyleSheet, ScrollView } from 'react-native';
+import { useAuthStore } from '../../store/authStore';
 
 export default function TwoFactorScreen() {
   const router = useRouter();
   const { tempToken } = useLocalSearchParams();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const setTempAuth = useAuthStore(state => state.setTempAuth);
 
   const handleVerify = async () => {
     if (code.length < 6 || !tempToken) return;
@@ -19,9 +24,10 @@ export default function TwoFactorScreen() {
     try {
       const res = await AuthService.submitTwoFactorCode(tempToken as string, code);
       const data = res.data || res;
-      
+
       if (data.requires_workspace_selection) {
-        router.push({ pathname: '/(auth)/workspace-select', params: { tempToken: data.temp_token } });
+        setTempAuth(data.temp_token, data.workspaces || []);
+        router.push('/(auth)/workspace-select');
       } else {
         // Normal success
         router.replace('/(tabs)/');
@@ -34,34 +40,55 @@ export default function TwoFactorScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background pt-16">
-      <View className="items-center mb-6">
-        <Text className="text-textOnDark text-heading font-serif-bold">Two-Factor Auth</Text>
+    <View className="flex-1 bg-background">
+      {/* Premium Purple Hero Header */}
+      <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
+        <LinearGradient
+          colors={['#3C3B75', '#4C49ED', '#5D58A6']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View className="absolute top-[-50px] right-[-50px] opacity-20">
+          <ArcanaHeroBackground size={400} />
+        </View>
       </View>
-      <AuthCard className="flex-1">
-        <View className="items-center mb-8 mt-4">
-          <Text className="text-textOnLight text-subheading font-serif-bold text-center">
-            Enter Authentication Code
-          </Text>
-          <Text className="text-textSecondaryLight text-body text-center mt-2 px-2">
-            Open your authenticator app and enter the 6-digit code.
+      
+      <ScrollView className="flex-1" contentContainerStyle={{ flexGrow: 1 }} bounces={false}>
+        {/* Hero Header Text */}
+        <View className="relative w-full min-h-[200px] justify-center px-8 pt-20 pb-4">
+          <Text className="text-textOnDark text-heading font-serif-bold mt-4">Two-Factor Auth</Text>
+          <Text className="text-textSecondaryDark text-body mt-2 leading-6 pr-4">
+            Protect your account with an extra layer of security.
           </Text>
         </View>
 
-        <OtpInput
-          length={6}
-          value={code}
-          onChangeText={setCode}
-        />
+        {/* Form Area (Light) */}
+        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2 flex-1 items-center">
+          <View className="items-center mb-8 mt-4">
+            <Text className="text-textOnLight text-subheading font-serif-bold text-center">
+              Enter Authentication Code
+            </Text>
+            <Text className="text-textSecondaryLight text-body text-center mt-2 px-2">
+              Open your authenticator app and enter the 6-digit code.
+            </Text>
+          </View>
 
-        <PrimaryButton
-          title="Verify"
-          onPress={handleVerify}
-          disabled={code.length < 6 || loading}
-          loading={loading}
-          className="mt-8"
-        />
-      </AuthCard>
+          <OtpInput
+            length={6}
+            value={code}
+            onChangeText={setCode}
+          />
+
+          <PrimaryButton
+            title="Verify"
+            onPress={handleVerify}
+            disabled={code.length < 6 || loading}
+            loading={loading}
+            className="mt-8 w-full"
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 }

@@ -21,6 +21,16 @@ export const AuthService = {
     return response.data;
   },
   
+  requestPasswordReset: async (email: string) => {
+    const response = await api.post('/api/v1/auth/forgot-password', { email });
+    return response.data;
+  },
+  
+  resetPassword: async (payload: any) => {
+    const response = await api.post('/api/v1/auth/reset-password', payload);
+    return response.data;
+  },
+  
   submitTwoFactorCode: async (tempToken: string, code: string) => {
     const response = await api.post('/api/v1/auth/2fa/verify', { code }, {
       headers: { Authorization: `Bearer ${tempToken}` }

@@ -11,37 +11,42 @@ module.exports = {
         'serif-italic': ['LibertinusSerif-Italic'],
       },
       colors: {
-        // Core dark theme (sampled from Image 1 — Arcana login)
-        background: '#0A0A0A',       // near-black main background
-        surface: '#1A1A1A',          // slightly lighter for cards on dark
-        surfaceLight: '#FFFFFF',     // white form panels / light cards
-        surfaceGray: '#F5F5F5',     // very subtle off-white for input fills on white cards
+        // Modern SaaS theme (Bento Grid / Vibrant Purple)
+        background: '#F4F6FA',       // Light lavender-grey canvas
+        surface: '#FFFFFF',          // Pure white cards
+        surfaceLight: '#FFFFFF',     // Compatibility alias
+        surfaceGray: '#F5F7FB',      // Subtle off-white for inputs/inactive states
+        
+        primary: '#4C49ED',          // Vibrant purple for buttons/actions
+        primaryDark: '#3C3B75',      // Deep indigo for headers
+        primaryLight: '#F0EEFF',     // Lavender pastel for pills/active states
 
-        // Text — dual tokens for dark/light surfaces
-        textOnDark: '#FAFAFA',       // near-white on dark backgrounds
-        textOnLight: '#1A1A1A',      // near-black on white surfaces
-        textSecondaryDark: '#8A8A8A', // muted gray on dark
-        textSecondaryLight: '#6B7280', // muted gray on light
-        textMuted: '#9CA3AF',         // placeholders everywhere
+        // Text
+        textOnDark: '#FFFFFF',       // White text on primary/dark buttons
+        textOnLight: '#1E2229',      // Dark charcoal for main text
+        textSecondaryDark: '#E2E8F0', // Muted text on dark panels
+        textSecondaryLight: '#8FA0B5', // Muted blue-grey for secondary text
+        textMuted: '#9CA3AF',        // Placeholders
 
         // Borders
-        border: '#E5E7EB',           // light surface borders
-        borderDark: '#2A2A2A',       // dark surface borders
+        border: '#F3F4F6',           // Extremely thin/light grey borders
+        borderDark: '#E5E7EB',       // Slightly darker for inputs
 
-        // Status (functional only — never decorative)
+        // Status / Pastels
         success: '#10B981',
-        error: '#EF4444',
-        warning: '#F59E0B',
+        error: '#FF5C5C',
+        errorBg: '#FFEFEF',
+        warning: '#FFAB2E',
+        warningBg: '#FFF6E9',
 
-        // Data-viz accents (for future dashboard — not used in auth)
-        chartPurple: '#7C3AED',
-        chartBlue: '#3B82F6',
-        chartOrange: '#F59E0B',
-        chartGreen: '#10B981',
-        chartTeal: '#06B6D4',
+        // Chart Accents
+        chartPurple: '#5A57E6',
+        chartBlue: '#4B70A7',
+        chartGreen: '#9EC5AE',
+        chartYellow: '#FBE8AD',
       },
       borderRadius: {
-        card: '20px',       // moderate radius for auth cards (Image 1)
+        card: '24px',       // Highly rounded bento cards (24px)
         input: '12px',      // subtle rounded corners for inputs (Image 1)
         button: '9999px',   // fully rounded pill for buttons (Image 7)
         otp: '12px',        // softly rounded OTP boxes (Image 12)
