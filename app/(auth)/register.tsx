@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ScrollView, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { View, Text, TouchableOpacity, Alert, Image, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
-import { AuthCard } from '../../components/ui/AuthCard';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
-import { ArcanaLogo } from '../../components/brand/ArcanaLogo';
-import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
+import { AuthHeader } from '../../components/brand/AuthHeader';
 import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
+import { getAccountTypeVisual } from '../../utils/accountType';
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { accountType } = useLocalSearchParams();
-  
+  const { accountType: accountTypeParam } = useLocalSearchParams();
+  const accountType = Array.isArray(accountTypeParam) ? accountTypeParam[0] : accountTypeParam || '';
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,6 +22,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
 
   const isOrg = accountType === 'organization' || accountType === 'freelance_team';
+  const visual = getAccountTypeVisual(accountType);
 
   const handleRegister = async () => {
     if (!name || !email || !password || !passwordConfirmation || (isOrg && !orgName)) {
@@ -55,45 +55,20 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
-      {/* Premium Purple Hero Header */}
-      <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
-        <LinearGradient
-          colors={['#3C3B75', '#4C49ED', '#5D58A6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <View className="absolute top-[-50px] right-[-50px] opacity-20">
-          <ArcanaHeroBackground size={400} />
-        </View>
-      </View>
-      
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
-        {/* Hero Header Text */}
-        <View className="relative w-full min-h-[260px] justify-center px-8 pt-16 pb-4">
-          <View className="z-10 mt-6">
-          <Text className="text-textOnDark text-[24px] font-serif-bold mb-4">Arcana</Text>
-          <Text className="text-textOnDark text-[32px] font-serif-bold mb-4 leading-9">Join Arcana</Text>
-          <Text className="text-textSecondaryDark text-body leading-6 mb-6">
-            Arcana helps developers to build organized and well coded dashboards full of beautiful and rich modules. Join us and start building your application today.
-          </Text>
-          <Text className="text-textOnDark text-caption font-serif-semibold">
-            More than 17k people joined us, it's your turn
-          </Text>
-        </View>
-        </View>
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} bounces={false}>
+        <AuthHeader />
 
-        {/* Form Area (Light) */}
-        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2">
-          <View className="flex-row items-center justify-center mb-10 mt-2">
-          <ArcanaLogo size={46} />
-          <Text className="text-textOnLight text-[32px] font-serif-bold ml-3 mt-1">Arcana</Text>
-        </View>
-        
-        <View className="mb-6">
-          <Text className="text-textOnLight text-subheading font-serif-bold">Create Account</Text>
-        </View>
+        <Image
+          source={visual.illustration}
+          resizeMode="contain"
+          style={{ width: 168, height: 168 / visual.illustrationRatio, alignSelf: 'center', marginBottom: 8 }}
+        />
+
+        <Text className="text-textOnLight text-heading font-serif-bold mt-2">Create your account</Text>
+        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
+          Join Arcana — built for solo freelancers, teams, and organizations alike.
+        </Text>
 
         <AppTextInput
           label="Full Name"
@@ -142,19 +117,17 @@ export default function RegisterScreen() {
         <View className="flex-row justify-center mt-6">
           <Text className="text-textSecondaryLight text-label">Already have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
-            <Text className="text-textOnLight text-label font-serif-bold">Log in</Text>
+            <Text className="text-primary text-label font-serif-bold">Log in</Text>
           </TouchableOpacity>
         </View>
 
         <View className="items-center mb-4 mt-8">
-          <SocialLoginRow 
+          <SocialLoginRow
             onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
-            onApplePress={() => Alert.alert('Apple', 'Apple OAuth pressed')}
             onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
           />
-          </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

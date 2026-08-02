@@ -1,0 +1,10 @@
+Photos sourced via Openverse (openverse.org), a search engine over openly
+licensed content. All four images below are CC0 (public domain dedication) —
+no attribution legally required — filtered via license=cc0 at search time.
+
+- freelancer.jpg   — "man working laptop table", via Flickr, CC0
+- team.jpg         — "Team meeting. View", via Rawpixel, CC0
+- organization.jpg — architectural photo of a glass office tower, via Flickr, CC0
+- workspace.jpg    — "Modern office, green workplace", via Rawpixel, CC0
+
+Source search: https://api.openverse.org/v1/images/?license=cc0

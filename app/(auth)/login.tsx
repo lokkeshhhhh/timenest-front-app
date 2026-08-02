@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Image, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
-import { AuthCard } from '../../components/ui/AuthCard';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
-import { ArcanaLogo } from '../../components/brand/ArcanaLogo';
-import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
-import { ScrollView, StyleSheet } from 'react-native';
+import { AuthHeader } from '../../components/brand/AuthHeader';
 import { useAuthStore } from '../../store/authStore';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -60,46 +56,21 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
-      {/* Premium Purple Hero Header */}
-      <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
-        <LinearGradient
-          colors={['#3C3B75', '#4C49ED', '#5D58A6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
-        />
-        <View className="absolute top-[-50px] right-[-50px] opacity-20">
-          <ArcanaHeroBackground size={400} />
-        </View>
-      </View>
-      
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 40 }} bounces={false}>
-        {/* Hero Header Text */}
-        <View className="relative w-full min-h-[260px] justify-center px-8 pt-16 pb-4">
-          <View className="z-10 mt-6">
-          <Text className="text-textOnDark text-[24px] font-serif-bold mb-4">Arcana</Text>
-          <Text className="text-textOnDark text-[32px] font-serif-bold mb-4 leading-9">Welcome to Arcana</Text>
-          <Text className="text-textSecondaryDark text-body leading-6 mb-6">
-            Arcana helps developers to build organized and well coded dashboards full of beautiful and rich modules. Join us and start building your application today.
-          </Text>
-          <Text className="text-textOnDark text-caption font-serif-semibold">
-            More than 17k people joined us, it's your turn
-          </Text>
-        </View>
-        </View>
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} bounces={false}>
+        <AuthHeader />
 
-        {/* Form Area (Light) */}
-        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2">
-          <View className="flex-row items-center justify-center mb-10 mt-2">
-          <ArcanaLogo size={46} />
-          <Text className="text-textOnLight text-[32px] font-serif-bold ml-3 mt-1">Arcana</Text>
-        </View>
-        
-        <View className="mb-6">
-          <Text className="text-textOnLight text-subheading font-serif-bold">Sign in</Text>
-        </View>
-        
+        <Image
+          source={require('../../assets/images/auth/login.png')}
+          resizeMode="contain"
+          style={{ width: 168, height: 168 * (900 / 706), alignSelf: 'center', marginBottom: 8 }}
+        />
+
+        <Text className="text-textOnLight text-heading font-serif-bold mt-2">Welcome back</Text>
+        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
+          Sign in to continue to your account.
+        </Text>
+
         <AppTextInput
           label="Email Address"
           placeholder="johndoe@gmail.com"
@@ -108,7 +79,7 @@ export default function LoginScreen() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        
+
         <AppTextInput
           label="Password"
           placeholder="••••••"
@@ -116,40 +87,38 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           secureTextEntry
         />
-        
+
         <View className="flex-row justify-between items-center mb-8 w-full px-1">
           <TouchableOpacity className="flex-row items-center">
             <View className="w-4 h-4 rounded border border-border mr-2 items-center justify-center bg-surfaceGray" />
             <Text className="text-textSecondaryLight text-label">Remember me</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
-            <Text className="text-textOnLight text-label font-bold">Forget Password?</Text>
+            <Text className="text-primary text-label font-bold">Forget Password?</Text>
           </TouchableOpacity>
         </View>
-        
+
         <PrimaryButton
           title="Sign in"
           onPress={handleLogin}
           loading={loading}
           disabled={!email || !password}
         />
-        
-        <View className="flex-row mt-6">
+
+        <View className="flex-row justify-center mt-6">
           <Text className="text-textSecondaryLight text-label">Don't have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/account-type')}>
-            <Text className="text-textOnLight text-label font-serif-bold">Sign up</Text>
+            <Text className="text-primary text-label font-serif-bold">Sign up</Text>
           </TouchableOpacity>
         </View>
 
-        <View className="items-center mb-4 mt-6">
-            <SocialLoginRow 
-              onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
-              onApplePress={() => Alert.alert('Apple', 'Apple OAuth pressed')}
-              onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
-            />
-          </View>
+        <View className="items-center mb-4 mt-8">
+          <SocialLoginRow
+            onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
+            onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
+          />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

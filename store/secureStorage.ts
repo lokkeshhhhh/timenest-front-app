@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import type { StateStorage } from 'zustand/middleware';
@@ -16,6 +17,11 @@ const secureKeyFor = (name: string, field: string) => `${name}.${field}`;
 // can't mean anything on the server anyway — the client re-hydrates for real
 // once it mounts in the browser — so these calls are no-ops there.
 const isServer = typeof window === 'undefined';
+// expo-secure-store's web build is a non-functional stub (its ExpoSecureStore.web.js
+// exports `{}` — no such OS-level secure enclave exists in a browser anyway), so
+// calling any of its methods there throws. Fall back to the same AsyncStorage-backed
+// blob the rest of the state already uses — the same tradeoff every web app makes.
+const canUseSecureStore = !isServer && Platform.OS !== 'web';
 
 /**
  * Zustand persist storage that splits auth state across two backends:
@@ -27,8 +33,9 @@ export const secureAuthStorage: StateStorage = {
     if (isServer) return null;
     const raw = await AsyncStorage.getItem(name);
     const parsed = raw ? JSON.parse(raw) : { state: {}, version: 0 };
-    const state = { ...parsed.state };
+    if (!canUseSecureStore) return JSON.stringify(parsed);
 
+    const state = { ...parsed.state };
     const secureValues = await Promise.all(
       SECURE_KEYS.map((field) => SecureStore.getItemAsync(secureKeyFor(name, field)))
     );
@@ -41,6 +48,11 @@ export const secureAuthStorage: StateStorage = {
 
   setItem: async (name, value) => {
     if (isServer) return;
+    if (!canUseSecureStore) {
+      await AsyncStorage.setItem(name, value);
+      return;
+    }
+
     const parsed = JSON.parse(value);
     const state = { ...parsed.state };
 
@@ -62,6 +74,7 @@ export const secureAuthStorage: StateStorage = {
   removeItem: async (name) => {
     if (isServer) return;
     await AsyncStorage.removeItem(name);
+    if (!canUseSecureStore) return;
     await Promise.all(
       SECURE_KEYS.map((field) => SecureStore.deleteItemAsync(secureKeyFor(name, field)).catch(() => {}))
     );

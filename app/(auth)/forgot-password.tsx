@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Alert, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
-import { ArcanaLogo } from '../../components/brand/ArcanaLogo';
-import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-import { StyleSheet } from 'react-native';
+import { AuthHeader } from '../../components/brand/AuthHeader';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -34,35 +31,20 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
-      {/* Premium Purple Hero Header */}
-      <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
-        <LinearGradient
-          colors={['#3C3B75', '#4C49ED', '#5D58A6']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={StyleSheet.absoluteFillObject}
+    <SafeAreaView className="flex-1 bg-background">
+      <ScrollView className="flex-1" bounces={false} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, flexGrow: 1 }}>
+        <AuthHeader />
+
+        <Image
+          source={require('../../assets/images/auth/forgot-password.png')}
+          resizeMode="contain"
+          style={{ width: 168, height: 168 * (644 / 900), alignSelf: 'center', marginBottom: 8 }}
         />
-        <View className="absolute top-[-50px] right-[-50px] opacity-20">
-          <ArcanaHeroBackground size={400} />
-        </View>
-      </View>
-      
-      <ScrollView className="flex-1" bounces={false} contentContainerStyle={{ flexGrow: 1 }}>
-        {/* Hero Area (Dark) */}
-        <View className="relative w-full min-h-[200px] justify-center px-8 pt-20 pb-4">
-        
-        <Text className="text-textOnDark text-heading font-serif-bold mt-4">Reset Password</Text>
-        <Text className="text-textSecondaryDark text-body mt-2 leading-6 pr-4">
+
+        <Text className="text-textOnLight text-heading font-serif-bold mt-2">Reset password</Text>
+        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
           Enter your email address and we'll send you instructions to reset your password.
         </Text>
-        </View>
-
-        {/* Form Area (Light) */}
-        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2 flex-1">
-          <View className="flex-row items-center justify-center mb-10 mt-2">
-          <ArcanaLogo size={46} />
-        </View>
 
         {success ? (
           <View className="items-center">
@@ -99,13 +81,12 @@ export default function ForgotPasswordScreen() {
             <View className="flex-row justify-center mt-6">
               <Text className="text-textSecondaryLight text-label mr-1">Remembered your password?</Text>
               <TouchableOpacity onPress={() => router.back()}>
-                <Text className="text-textOnLight text-label font-bold">Sign in</Text>
+                <Text className="text-primary text-label font-bold">Sign in</Text>
               </TouchableOpacity>
             </View>
           </>
         )}
-        </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
