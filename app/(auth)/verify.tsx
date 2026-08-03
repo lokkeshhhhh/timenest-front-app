@@ -1,18 +1,18 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
-import { AuthCard } from '../../components/ui/AuthCard';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
 import { StyleSheet, ScrollView } from 'react-native';
+import { shadowLg } from '../../constants/shadows';
 
 export default function VerifyScreen() {
   const router = useRouter();
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-background dark:bg-backgroundDark">
       {/* Premium Purple Hero Header */}
       <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
         <LinearGradient
@@ -35,16 +35,19 @@ export default function VerifyScreen() {
           </Text>
         </View>
 
-        {/* Form Area (Light) */}
-        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2 flex-1 items-center">
-          <View className="w-20 h-20 bg-surfaceGray rounded-icon items-center justify-center mb-6 mt-4">
+        {/* Form Area */}
+        <View
+          style={shadowLg}
+          className="bg-surfaceLight dark:bg-white/5 rounded-card mx-4 px-6 py-10 mb-8 mt-2 flex-1 items-center"
+        >
+          <View className="w-20 h-20 bg-surfaceGray dark:bg-surfaceGrayDark rounded-icon items-center justify-center mb-6 mt-4">
             <FontAwesome name="envelope-o" size={40} color="#4C49ED" />
           </View>
-          
-          <Text className="text-textOnLight text-subheading font-serif-bold text-center mb-2">
+
+          <Text className="text-textOnLight dark:text-textOnDark text-subheading font-serif-bold text-center mb-2">
             Verification Pending
           </Text>
-          <Text className="text-textSecondaryLight text-body text-center mb-8 px-4">
+          <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body text-center mb-8 px-4">
             We've sent a verification link to your email address. Please tap the link in the email to activate your account.
           </Text>
           

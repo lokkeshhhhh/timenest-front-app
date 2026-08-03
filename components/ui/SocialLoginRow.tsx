@@ -37,21 +37,21 @@ export const SocialLoginRow = ({ onGooglePress, onFacebookPress }: SocialLoginRo
   return (
     <View className="w-full" style={{ gap: 12 }}>
       <TouchableOpacity
-        className="w-full flex-row items-center justify-center bg-surfaceLight border border-borderDark rounded-input py-3.5"
+        className="w-full flex-row items-center justify-center bg-surfaceLight dark:bg-white/5 border border-borderDark dark:border-white/10 rounded-input py-3.5"
         onPress={onGooglePress}
         activeOpacity={0.8}
       >
         <GoogleIcon size={20} />
-        <Text className="text-textOnLight text-body font-serif-semibold ml-3">Continue with Google</Text>
+        <Text className="text-textOnLight dark:text-textOnDark text-body font-serif-semibold ml-3">Continue with Google</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        className="w-full flex-row items-center justify-center bg-surfaceLight border border-borderDark rounded-input py-3.5"
+        className="w-full flex-row items-center justify-center bg-surfaceLight dark:bg-white/5 border border-borderDark dark:border-white/10 rounded-input py-3.5"
         onPress={onFacebookPress}
         activeOpacity={0.8}
       >
         <FontAwesome name="facebook" size={20} color="#1877F2" />
-        <Text className="text-textOnLight text-body font-serif-semibold ml-3">Continue with Facebook</Text>
+        <Text className="text-textOnLight dark:text-textOnDark text-body font-serif-semibold ml-3">Continue with Facebook</Text>
       </TouchableOpacity>
     </View>
   );

@@ -19,7 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useAuthStore } from '../../store/authStore';
 import { useSplashStore } from '../../store/splashStore';
-import { useColorScheme } from '../../components/useColorScheme';
+import { useTheme } from '../../hooks/useTheme';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 
 // The app-wide accent, read directly from tailwind.config.js — the one place
@@ -324,7 +324,7 @@ const AnimatedFlatList = Animated.createAnimatedComponent(FlatList) as typeof Fl
 
 export default function OnboardingScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
+  const { scheme: colorScheme } = useTheme();
   const setHasSeenOnboarding = useAuthStore((state) => state.setHasSeenOnboarding);
   const { width } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(0);

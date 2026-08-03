@@ -47,7 +47,7 @@ export default function WorkspaceSelectScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, flexGrow: 1 }} bounces={false}>
         <AuthHeader />
 
@@ -57,12 +57,12 @@ export default function WorkspaceSelectScreen() {
           style={{ width: 168, height: 168 * (824 / 900), alignSelf: 'center', marginBottom: 8 }}
         />
 
-        <Text className="text-textOnLight text-heading font-serif-bold mt-2">Select workspace</Text>
-        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
+        <Text className="text-textOnLight dark:text-textOnDark text-heading font-serif-bold mt-2">Select workspace</Text>
+        <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body mt-2 mb-6 leading-6">
           Choose the organization or team you want to log into.
         </Text>
 
-        <Text className="text-label font-serif-semibold text-textSecondaryLight uppercase mb-4">
+        <Text className="text-label font-serif-semibold text-textSecondaryLight dark:text-textSecondaryDark uppercase mb-4">
           {workspaces.length} {workspaces.length === 1 ? 'Workspace' : 'Workspaces'}
         </Text>
 

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { TouchableOpacity, Text, View, Image } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, interpolateColor } from 'react-native-reanimated';
-import { useColorScheme } from '../useColorScheme';
+import { useTheme } from '../../hooks/useTheme';
 
 export interface CardBadge {
   label: string;
@@ -22,7 +22,7 @@ interface SelectableCardProps {
 }
 
 export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, avatarShape = 'square', badges, selected, onSelect }: SelectableCardProps) => {
-  const scheme = useColorScheme();
+  const { scheme } = useTheme();
   const isDark = scheme === 'dark';
   const progress = useSharedValue(selected ? 1 : 0);
 
@@ -49,11 +49,11 @@ export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, 
   });
 
   const renderBadge = (badge: CardBadge, idx: number) => {
-    let bgClass = 'bg-surfaceGray dark:bg-white/10';
+    let bgClass = 'bg-surfaceGray dark:bg-surfaceGrayDark';
     let textClass = 'text-textSecondaryLight dark:text-textSecondaryDark';
 
-    if (badge.color === 'primary') { bgClass = 'bg-primaryLight dark:bg-white/10'; textClass = 'text-primary dark:text-textOnDark'; }
-    if (badge.color === 'warning') { bgClass = 'bg-warningBg'; textClass = 'text-warning'; }
+    if (badge.color === 'primary') { bgClass = 'bg-primaryLight dark:bg-primaryLightDark'; textClass = 'text-primary dark:text-textOnDark'; }
+    if (badge.color === 'warning') { bgClass = 'bg-warningBg dark:bg-warningBgDark'; textClass = 'text-warning'; }
     if (badge.color === 'success') { bgClass = 'bg-success/10'; textClass = 'text-success'; }
 
     return (
@@ -78,7 +78,7 @@ export const SelectableCard = ({ title, subtitle, description, icon, avatarUrl, 
           {avatarUrl ? (
             <Image
               source={{ uri: avatarUrl }}
-              className={`w-14 h-14 bg-surfaceGray ${avatarShape === 'circle' ? 'rounded-full' : 'rounded-2xl'}`}
+              className={`w-14 h-14 bg-surfaceGray dark:bg-surfaceGrayDark ${avatarShape === 'circle' ? 'rounded-full' : 'rounded-2xl'}`}
             />
           ) : icon ? (
             icon

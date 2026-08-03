@@ -9,9 +9,12 @@ import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackgroun
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { StyleSheet } from 'react-native';
+import { useTheme } from '../../hooks/useTheme';
+import { shadowLg } from '../../constants/shadows';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const params = useLocalSearchParams();
   const email = params.email as string;
   const token = params.token as string;
@@ -64,9 +67,9 @@ export default function ResetPasswordScreen() {
 
   if (!email || !token) {
     return (
-      <View className="flex-1 bg-background justify-center items-center px-8">
-        <Text className="text-textOnLight text-heading font-serif-bold text-center mb-4">Invalid Link</Text>
-        <Text className="text-textSecondaryLight text-body text-center mb-8">
+      <View className="flex-1 bg-background dark:bg-backgroundDark justify-center items-center px-8">
+        <Text className="text-textOnLight dark:text-textOnDark text-heading font-serif-bold text-center mb-4">Invalid Link</Text>
+        <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body text-center mb-8">
           This password reset link is missing required information. Please request a new one.
         </Text>
         <PrimaryButton
@@ -79,7 +82,7 @@ export default function ResetPasswordScreen() {
   }
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-background dark:bg-backgroundDark">
       {/* Premium Purple Hero Header */}
       <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
         <LinearGradient
@@ -103,10 +106,13 @@ export default function ResetPasswordScreen() {
         </Text>
         </View>
 
-        {/* Form Area (Light) */}
-        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2 flex-1">
+        {/* Form Area */}
+        <View
+          style={shadowLg}
+          className="bg-surfaceLight dark:bg-white/5 rounded-card mx-4 px-6 py-10 mb-8 mt-2 flex-1"
+        >
           <View className="flex-row items-center justify-center mb-10 mt-2">
-          <ArcanaLogo size={46} />
+          <ArcanaLogo size={46} color={colors.textOnSurface} />
         </View>
 
         <AppTextInput

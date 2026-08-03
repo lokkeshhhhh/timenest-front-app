@@ -36,7 +36,7 @@ export default function AccountTypeScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, flexGrow: 1 }} bounces={false}>
         <AuthHeader />
 
@@ -46,8 +46,8 @@ export default function AccountTypeScreen() {
           style={{ width: 168, height: 168 * (900 / 649), alignSelf: 'center', marginBottom: 8 }}
         />
 
-        <Text className="text-textOnLight text-heading font-serif-bold mt-2">How will you use Arcana?</Text>
-        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
+        <Text className="text-textOnLight dark:text-textOnDark text-heading font-serif-bold mt-2">How will you use Arcana?</Text>
+        <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body mt-2 mb-6 leading-6">
           Select the profile that best fits your needs.
         </Text>
 

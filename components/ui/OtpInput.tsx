@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text } from 'react-native';
+import { shadowSm } from '../../constants/shadows';
 
 interface OtpInputProps {
   length?: number;
@@ -19,7 +20,8 @@ export const OtpInput = ({ length = 6, value, onChangeText }: OtpInputProps) => 
       cells.push(
         <View
           key={i}
-          className={`w-12 h-14 bg-surfaceLight dark:bg-white/10 border-2 justify-center items-center rounded-otp shadow-sm shadow-black/5 ${isActive ? 'border-textOnLight dark:border-textOnDark' : 'border-border dark:border-white/10'}`}
+          style={shadowSm}
+          className={`w-12 h-14 bg-surfaceLight dark:bg-white/10 border-2 justify-center items-center rounded-otp ${isActive ? 'border-textOnLight dark:border-textOnDark' : 'border-border dark:border-white/10'}`}
         >
           <Text className="text-heading text-textOnLight dark:text-textOnDark font-serif-bold">{char}</Text>
         </View>

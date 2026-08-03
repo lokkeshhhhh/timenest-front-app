@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useColorScheme } from '../useColorScheme';
+import { useTheme } from '../../hooks/useTheme';
 
 interface ModuleCardProps {
   icon: React.ComponentProps<typeof FontAwesome>['name'];
@@ -14,8 +14,7 @@ interface ModuleCardProps {
 
 /** Half-width dashboard shortcut card. `disabled` renders the "coming soon" look. */
 export const ModuleCard = ({ icon, label, subtitle, onPress, disabled, badge }: ModuleCardProps) => {
-  const scheme = useColorScheme();
-  const iconColor = scheme === 'dark' ? '#FFFFFF' : '#3D2834';
+  const { colors } = useTheme();
 
   return (
     <TouchableOpacity
@@ -27,11 +26,11 @@ export const ModuleCard = ({ icon, label, subtitle, onPress, disabled, badge }: 
       }`}
     >
       <View className="flex-row items-center justify-between mb-3">
-        <View className="w-10 h-10 rounded-icon bg-surfaceGray dark:bg-white/10 items-center justify-center">
-          <FontAwesome name={icon} size={17} color={iconColor} />
+        <View className="w-10 h-10 rounded-icon bg-surfaceGray dark:bg-surfaceGrayDark items-center justify-center">
+          <FontAwesome name={icon} size={17} color={colors.textOnSurface} />
         </View>
         {badge ? (
-          <View className="bg-warningBg px-2 py-0.5 rounded-icon">
+          <View className="bg-warningBg dark:bg-warningBgDark px-2 py-0.5 rounded-icon">
             <Text className="text-[10px] font-serif-semibold text-warning uppercase">{badge}</Text>
           </View>
         ) : null}

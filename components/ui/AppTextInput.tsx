@@ -17,7 +17,7 @@ export const AppTextInput = ({ label, error, secureTextEntry, ...props }: AppTex
       <Text className="text-label text-textOnLight dark:text-textOnDark font-serif-semibold mb-2 ml-1">{label}</Text>
       <View className="relative w-full flex-row items-center">
         <TextInput
-          className={`flex-1 bg-surfaceGray dark:bg-white/10 text-body text-textOnLight dark:text-textOnDark rounded-input px-4 py-4 border ${
+          className={`flex-1 bg-surfaceGray dark:bg-surfaceGrayDark text-body text-textOnLight dark:text-textOnDark rounded-input px-4 py-4 border ${
             error ? 'border-error' : isFocused ? 'border-primary' : 'border-borderDark dark:border-white/10'
           } ${secureTextEntry ? 'pr-12' : ''}`}
           placeholderTextColor="#9CA3AF"

@@ -16,7 +16,7 @@ export const ComingSoonScreen = ({ title, icon, description }: ComingSoonScreenP
     <SafeAreaView edges={['bottom']} className="flex-1 bg-background dark:bg-backgroundDark">
       <ScreenHeader title={title} />
       <View className="flex-1 items-center justify-center px-10">
-        <View className="w-20 h-20 rounded-full bg-surfaceGray dark:bg-white/10 items-center justify-center mb-5">
+        <View className="w-20 h-20 rounded-full bg-surfaceGray dark:bg-surfaceGrayDark items-center justify-center mb-5">
           <FontAwesome name={icon} size={30} color="#8FA0B5" />
         </View>
         <Text className="text-subheading font-serif-bold text-textOnLight dark:text-textOnDark mb-2 text-center">

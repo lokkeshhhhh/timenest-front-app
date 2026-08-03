@@ -65,7 +65,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} bounces={false}>
         <AuthHeader />
 
@@ -75,8 +75,8 @@ export default function LoginScreen() {
           style={{ width: 168, height: 168 * (900 / 706), alignSelf: 'center', marginBottom: 8 }}
         />
 
-        <Text className="text-textOnLight text-heading font-serif-bold mt-2">Welcome back</Text>
-        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
+        <Text className="text-textOnLight dark:text-textOnDark text-heading font-serif-bold mt-2">Welcome back</Text>
+        <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body mt-2 mb-6 leading-6">
           Sign in to continue to your account.
         </Text>
 
@@ -99,8 +99,8 @@ export default function LoginScreen() {
 
         <View className="flex-row justify-between items-center mb-8 w-full px-1">
           <TouchableOpacity className="flex-row items-center">
-            <View className="w-4 h-4 rounded border border-border mr-2 items-center justify-center bg-surfaceGray" />
-            <Text className="text-textSecondaryLight text-label">Remember me</Text>
+            <View className="w-4 h-4 rounded border border-border dark:border-white/20 mr-2 items-center justify-center bg-surfaceGray dark:bg-surfaceGrayDark" />
+            <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-label">Remember me</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
             <Text className="text-primary text-label font-bold">Forget Password?</Text>
@@ -115,7 +115,7 @@ export default function LoginScreen() {
         />
 
         <View className="flex-row justify-center mt-6">
-          <Text className="text-textSecondaryLight text-label">Don't have an account? </Text>
+          <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-label">Don't have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/account-type')}>
             <Text className="text-primary text-label font-serif-bold">Sign up</Text>
           </TouchableOpacity>

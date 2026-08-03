@@ -31,7 +31,7 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView className="flex-1" bounces={false} contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40, flexGrow: 1 }}>
         <AuthHeader />
 
@@ -41,15 +41,15 @@ export default function ForgotPasswordScreen() {
           style={{ width: 168, height: 168 * (644 / 900), alignSelf: 'center', marginBottom: 8 }}
         />
 
-        <Text className="text-textOnLight text-heading font-serif-bold mt-2">Reset password</Text>
-        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
+        <Text className="text-textOnLight dark:text-textOnDark text-heading font-serif-bold mt-2">Reset password</Text>
+        <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body mt-2 mb-6 leading-6">
           Enter your email address and we'll send you instructions to reset your password.
         </Text>
 
         {success ? (
           <View className="items-center">
-            <Text className="text-textOnLight text-heading font-serif-bold text-center mb-4">Check your email</Text>
-            <Text className="text-textSecondaryLight text-body text-center leading-6 mb-8">
+            <Text className="text-textOnLight dark:text-textOnDark text-heading font-serif-bold text-center mb-4">Check your email</Text>
+            <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body text-center leading-6 mb-8">
               If an account with that email exists, we've sent a password reset link to <Text className="font-bold">{email}</Text>.
             </Text>
             <PrimaryButton
@@ -79,7 +79,7 @@ export default function ForgotPasswordScreen() {
             />
             
             <View className="flex-row justify-center mt-6">
-              <Text className="text-textSecondaryLight text-label mr-1">Remembered your password?</Text>
+              <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-label mr-1">Remembered your password?</Text>
               <TouchableOpacity onPress={() => router.back()}>
                 <Text className="text-primary text-label font-bold">Sign in</Text>
               </TouchableOpacity>

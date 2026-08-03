@@ -55,7 +55,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }} bounces={false}>
         <AuthHeader />
 
@@ -65,8 +65,8 @@ export default function RegisterScreen() {
           style={{ width: 168, height: 168 / visual.illustrationRatio, alignSelf: 'center', marginBottom: 8 }}
         />
 
-        <Text className="text-textOnLight text-heading font-serif-bold mt-2">Create your account</Text>
-        <Text className="text-textSecondaryLight text-body mt-2 mb-6 leading-6">
+        <Text className="text-textOnLight dark:text-textOnDark text-heading font-serif-bold mt-2">Create your account</Text>
+        <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body mt-2 mb-6 leading-6">
           Join Arcana — built for solo freelancers, teams, and organizations alike.
         </Text>
 
@@ -115,7 +115,7 @@ export default function RegisterScreen() {
         />
         
         <View className="flex-row justify-center mt-6">
-          <Text className="text-textSecondaryLight text-label">Already have an account? </Text>
+          <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-label">Already have an account? </Text>
           <TouchableOpacity onPress={() => router.push('/(auth)/login')}>
             <Text className="text-primary text-label font-serif-bold">Log in</Text>
           </TouchableOpacity>

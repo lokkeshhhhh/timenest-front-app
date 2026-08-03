@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
-import { AuthCard } from '../../components/ui/AuthCard';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { OtpInput } from '../../components/ui/OtpInput';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArcanaHeroBackground } from '../../components/brand/ArcanaHeroBackground';
 import { StyleSheet, ScrollView } from 'react-native';
 import { useAuthStore } from '../../store/authStore';
+import { shadowLg } from '../../constants/shadows';
 
 export default function TwoFactorScreen() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function TwoFactorScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-background dark:bg-backgroundDark">
       {/* Premium Purple Hero Header */}
       <View className="absolute top-0 left-0 right-0 h-[380px] rounded-b-[40px] overflow-hidden">
         <LinearGradient
@@ -63,13 +63,16 @@ export default function TwoFactorScreen() {
           </Text>
         </View>
 
-        {/* Form Area (Light) */}
-        <View className="bg-surfaceLight rounded-card mx-4 px-6 py-10 shadow-lg shadow-black/5 mb-8 mt-2 flex-1 items-center">
+        {/* Form Area */}
+        <View
+          style={shadowLg}
+          className="bg-surfaceLight dark:bg-white/5 rounded-card mx-4 px-6 py-10 mb-8 mt-2 flex-1 items-center"
+        >
           <View className="items-center mb-8 mt-4">
-            <Text className="text-textOnLight text-subheading font-serif-bold text-center">
+            <Text className="text-textOnLight dark:text-textOnDark text-subheading font-serif-bold text-center">
               Enter Authentication Code
             </Text>
-            <Text className="text-textSecondaryLight text-body text-center mt-2 px-2">
+            <Text className="text-textSecondaryLight dark:text-textSecondaryDark text-body text-center mt-2 px-2">
               Open your authenticator app and enter the 6-digit code.
             </Text>
           </View>

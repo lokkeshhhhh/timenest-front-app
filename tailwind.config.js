@@ -1,5 +1,13 @@
+const palette = require('./constants/paletteRaw');
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // 'class' (not the default 'media') so the user's light/dark/system
+  // preference — not just the raw OS media query — can actually drive every
+  // `dark:` className. NativeWind's colorScheme.set('system'|'light'|'dark')
+  // still follows the OS automatically for 'system'; 'class' only removes
+  // the restriction that made 'light'/'dark' overrides impossible.
+  darkMode: 'class',
   content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
@@ -12,35 +20,42 @@ module.exports = {
       },
       colors: {
         // Modern SaaS theme (Bento Grid / Vibrant Purple)
-        background: '#F4F6FA',       // Light lavender-grey canvas
-        backgroundDark: '#0A0A0A',   // Near-black canvas (splash, dark-mode surfaces)
-        surface: '#FFFFFF',          // Pure white cards
-        surfaceLight: '#FFFFFF',     // Compatibility alias
-        surfaceGray: '#F5F7FB',      // Subtle off-white for inputs/inactive states
-        
-        primary: '#3D2834',          // Deep wine/maroon — app-wide accent (buttons/actions)
-        primaryDark: '#3C3B75',      // Deep indigo for headers
-        primaryLight: '#F0EEFF',     // Lavender pastel for pills/active states
+        // Real light/dark pairs come from constants/paletteRaw.js (the
+        // single source of truth also used by hooks/useTheme.ts) so the
+        // className tokens and the raw-JS lookups can never drift apart.
+        background: palette.light.background,
+        backgroundDark: palette.dark.background,
+        surface: palette.light.surface,
+        surfaceLight: palette.light.surface, // Compatibility alias
+        surfaceGray: palette.light.surfaceGray,
+        surfaceGrayDark: palette.dark.surfaceGray,
+
+        primary: palette.light.primary,          // Deep wine/maroon — app-wide accent, same in both modes
+        primaryDark: '#3C3B75',                  // Distinct legacy hero-gradient indigo — NOT a dark-mode pair of `primary`
+        primaryLight: palette.light.primaryLight,
+        primaryLightDark: palette.dark.primaryLight,
 
         // Text
-        textOnDark: '#FFFFFF',       // White text on primary/dark buttons
-        textOnLight: '#1E2229',      // Dark charcoal for main text
-        textSecondaryDark: '#E2E8F0', // Muted text on dark panels
-        textSecondaryLight: '#8FA0B5', // Muted blue-grey for secondary text
-        textMuted: '#9CA3AF',        // Placeholders
+        textOnDark: palette.dark.textOnSurface,
+        textOnLight: palette.light.textOnSurface,
+        textSecondaryDark: palette.dark.textSecondary,
+        textSecondaryLight: palette.light.textSecondary,
+        textMuted: '#9CA3AF',        // Placeholders — same tone reads fine on both surfaces
 
         // Borders
-        border: '#F3F4F6',           // Extremely thin/light grey borders
-        borderDark: '#E5E7EB',       // Slightly darker for inputs
+        border: '#F3F4F6',            // Extremely thin/light grey borders — dark screens pair this with border-white/10
+        borderDark: '#E5E7EB',        // Input border shade in LIGHT mode — NOT a dark-mode pair of `border`
 
         // Status / Pastels
-        success: '#10B981',
-        error: '#FF5C5C',
-        errorBg: '#FFEFEF',
-        warning: '#FFAB2E',
-        warningBg: '#FFF6E9',
+        success: palette.light.success,
+        error: palette.light.error,
+        errorBg: palette.light.errorBg,
+        errorBgDark: palette.dark.errorBg,
+        warning: palette.light.warning,
+        warningBg: palette.light.warningBg,
+        warningBgDark: palette.dark.warningBg,
 
-        // Chart Accents
+        // Chart Accents (decorative, unthemed)
         chartPurple: '#5A57E6',
         chartBlue: '#4B70A7',
         chartGreen: '#9EC5AE',

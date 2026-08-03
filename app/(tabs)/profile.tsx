@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import React from 'react';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -7,19 +7,10 @@ import { useAuthStore } from '../../store/authStore';
 import { useOrgStore, useIsMultiOrg } from '../../store/orgStore';
 import { usePermission, useAnyPermission } from '../../store/permissionStore';
 import { PERMISSIONS } from '../../constants/permissions';
-import { AuthService } from '../../services/auth';
-import { clearSession } from '../../utils/session';
 import { Avatar } from '../../components/ui/Avatar';
 import { RoleBadge } from '../../components/ui/RoleBadge';
 import { MenuRow } from '../../components/ui/MenuRow';
-
-function SectionLabel({ children }: { children: string }) {
-  return (
-    <Text className="text-label font-serif-semibold text-textSecondaryLight dark:text-textSecondaryDark uppercase mb-2 mt-6">
-      {children}
-    </Text>
-  );
-}
+import { SectionLabel } from '../../components/ui/SectionLabel';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -27,7 +18,6 @@ export default function ProfileScreen() {
   const activeOrg = useOrgStore((state) => state.activeOrg);
   const roleLabel = useOrgStore((state) => state.roleLabel);
   const isMultiOrg = useIsMultiOrg();
-  const [signingOut, setSigningOut] = useState(false);
 
   const canViewAttendance = usePermission(PERMISSIONS.ATTENDANCE_VIEW);
   const canViewLeaves = usePermission(PERMISSIONS.LEAVES_VIEW);
@@ -36,29 +26,9 @@ export default function ProfileScreen() {
   const canSeeOrgSettings = usePermission(PERMISSIONS.SETTINGS_MANAGE);
   const showOrgSection = canSeeMembers || canSeeOrgSettings;
   const showModulesSection = canViewAttendance || canViewLeaves || canViewWorklog;
+  const showWorkspaceSection = isMultiOrg;
 
   const orgName = activeOrg?.trading_name || activeOrg?.legal_name;
-
-  const handleSignOut = () => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: async () => {
-          setSigningOut(true);
-          try {
-            await AuthService.logout();
-          } catch {
-            // best-effort — clear the local session regardless of server outcome
-          } finally {
-            clearSession();
-            router.replace('/(auth)/login');
-          }
-        },
-      },
-    ]);
-  };
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background dark:bg-backgroundDark">
@@ -112,17 +82,10 @@ export default function ProfileScreen() {
           </>
         )}
 
-        {/* Account settings — always visible; every user can manage their own account */}
+        {/* Account — always visible; every user can manage their own identity */}
         <SectionLabel>Account</SectionLabel>
         <View className="bg-surfaceLight dark:bg-white/5 rounded-card px-4 border border-border dark:border-white/10">
-          <MenuRow icon="user-circle-o" label="Edit profile" onPress={() => router.push('/edit-profile')} />
-          <MenuRow icon="lock" label="Change password" onPress={() => router.push('/change-password')} />
-          <MenuRow
-            icon="shield"
-            label="Two-factor authentication"
-            onPress={() => router.push('/two-factor')}
-            last
-          />
+          <MenuRow icon="user-circle-o" label="Edit profile" onPress={() => router.push('/edit-profile')} last />
         </View>
 
         {/* Organization — gated: invitations.view OR users.manage (members), settings.manage (org settings) */}
@@ -139,27 +102,31 @@ export default function ProfileScreen() {
                 />
               )}
               {canSeeOrgSettings && (
-                <MenuRow icon="cog" label="Organization settings" onPress={() => router.push('/settings')} last />
+                <MenuRow
+                  icon="cog"
+                  label="Organization settings"
+                  onPress={() => router.push('/organization-settings')}
+                  last
+                />
               )}
             </View>
           </>
         )}
 
-        {/* Workspace & session */}
-        <SectionLabel>Workspace</SectionLabel>
-        <View className="bg-surfaceLight dark:bg-white/5 rounded-card px-4 border border-border dark:border-white/10">
-          {isMultiOrg && (
-            <MenuRow icon="exchange" label="Switch workspace" onPress={() => router.push('/workspace-switch')} />
-          )}
-          <MenuRow
-            icon="sign-out"
-            label={signingOut ? 'Signing out…' : 'Sign out'}
-            destructive
-            showChevron={false}
-            onPress={signingOut ? undefined : handleSignOut}
-            last
-          />
-        </View>
+        {/* Workspace — multi-org only; account-level actions (password, 2FA, theme, sign out) live in Settings */}
+        {showWorkspaceSection && (
+          <>
+            <SectionLabel>Workspace</SectionLabel>
+            <View className="bg-surfaceLight dark:bg-white/5 rounded-card px-4 border border-border dark:border-white/10">
+              <MenuRow
+                icon="exchange"
+                label="Switch workspace"
+                onPress={() => router.push('/workspace-switch')}
+                last
+              />
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

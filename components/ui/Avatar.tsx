@@ -12,7 +12,7 @@ export const Avatar = ({ name, url, size = 48 }: AvatarProps) => {
   return (
     <View
       style={{ width: size, height: size, borderRadius: size / 2 }}
-      className="bg-surfaceGray overflow-hidden"
+      className="bg-surfaceGray dark:bg-surfaceGrayDark overflow-hidden"
     >
       <Image
         source={{ uri: resolveAvatarUrl(name || '?', url, size * 2) }}

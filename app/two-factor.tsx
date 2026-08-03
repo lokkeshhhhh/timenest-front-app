@@ -107,7 +107,7 @@ export default function TwoFactorScreen() {
               Store these somewhere safe. Each code can be used once if you lose access to your
               authenticator app. They won't be shown again.
             </Text>
-            <View className="bg-surfaceGray dark:bg-white/10 rounded-card p-4 mb-6">
+            <View className="bg-surfaceGray dark:bg-surfaceGrayDark rounded-card p-4 mb-6">
               {recoveryCodes.map((code) => (
                 <Text
                   key={code}
@@ -128,7 +128,7 @@ export default function TwoFactorScreen() {
               Add this key to your authenticator app (Google Authenticator, Authy, 1Password…), then
               enter the 6-digit code it generates.
             </Text>
-            <View className="bg-surfaceGray dark:bg-white/10 rounded-card p-4 mb-6">
+            <View className="bg-surfaceGray dark:bg-surfaceGrayDark rounded-card p-4 mb-6">
               <Text className="text-caption text-textSecondaryLight dark:text-textSecondaryDark mb-1">
                 Manual entry key
               </Text>

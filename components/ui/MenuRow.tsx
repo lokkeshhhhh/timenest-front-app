@@ -34,7 +34,7 @@ export const MenuRow = ({
       activeOpacity={0.7}
       className={`flex-row items-center py-3.5 ${last ? '' : 'border-b border-border dark:border-white/10'}`}
     >
-      <View className="w-9 h-9 rounded-icon bg-surfaceGray dark:bg-white/10 items-center justify-center mr-3">
+      <View className="w-9 h-9 rounded-icon bg-surfaceGray dark:bg-surfaceGrayDark items-center justify-center mr-3">
         <FontAwesome name={icon} size={16} color={iconColor} />
       </View>
       <View className="flex-1">

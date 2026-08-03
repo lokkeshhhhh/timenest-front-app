@@ -8,10 +8,11 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import { useTheme } from '@/hooks/useTheme';
 import { useAuthStore } from '@/store/authStore';
 import { useSplashStore } from '@/store/splashStore';
 import { AnimatedSplashScreen } from '@/components/splash/AnimatedSplashScreen';
+import { ThemeSync } from '@/components/ThemeSync';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -49,13 +50,14 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { scheme } = useTheme();
   const hydrated = useAuthStore((state) => state.hydrated);
   const [splashVisible, setSplashVisible] = useState(true);
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeSync />
+      <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
