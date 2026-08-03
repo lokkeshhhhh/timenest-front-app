@@ -13,6 +13,16 @@ import { useAuthStore } from '@/store/authStore';
 import { useSplashStore } from '@/store/splashStore';
 import { AnimatedSplashScreen } from '@/components/splash/AnimatedSplashScreen';
 import { ThemeSync } from '@/components/ThemeSync';
+import paletteRaw from '@/constants/paletteRaw';
+
+// React Navigation's stock DefaultTheme/DarkTheme paint their own
+// colors.background (#F2F2F2 / #121212-ish) as a full-screen base layer
+// behind everything — visible in any gap where our own screens don't paint
+// over it (e.g. around the floating tab bar). Overriding it to match our
+// actual canvas color means there's never a seam, regardless of what else
+// on screen is transparent.
+const LightNavTheme = { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: paletteRaw.light.background } };
+const DarkNavTheme = { ...DarkTheme, colors: { ...DarkTheme.colors, background: paletteRaw.dark.background } };
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -57,7 +67,7 @@ function RootLayoutNav() {
   return (
     <SafeAreaProvider>
       <ThemeSync />
-      <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={scheme === 'dark' ? DarkNavTheme : LightNavTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />

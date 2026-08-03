@@ -2,8 +2,6 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { useTheme } from '../../hooks/useTheme';
-import { shadowSmStrong } from '../../constants/shadows';
 
 const ICONS: Record<string, React.ComponentProps<typeof FontAwesome>['name']> = {
   index: 'home',
@@ -13,22 +11,32 @@ const ICONS: Record<string, React.ComponentProps<typeof FontAwesome>['name']> = 
 };
 
 /**
- * Floating capsule tab bar: every tab is the same fixed-size circular icon
- * button, active one filled with the accent color. Deliberately uniform —
- * an earlier version made the active tab a wider pill with a text label,
- * which produced uneven edge spacing (the bar's content width changed
- * depending on which tab, and how long its label, was active) and shifted
- * neighboring buttons whenever the active tab changed. Fixed-size circles
- * can't have either problem: every slot is identical regardless of state.
+ * Floating capsule tab bar. The capsule itself is always solid black,
+ * regardless of light/dark theme — everything else (this wrapper, the
+ * screen behind it) is fully transparent, so nothing here paints its own
+ * background. Colors are plain inline styles, not `dark:` classNames: this
+ * bar re-renders on every theme change, and that's exactly the situation
+ * that previously triggered NativeWind's navigation-context crash — fixed
+ * signature avoids raising the risk again.
  */
 export function AppTabBar({ state, descriptors, navigation, insets }: BottomTabBarProps) {
-  const { colors } = useTheme();
-
   return (
-    <View style={{ paddingBottom: insets.bottom + 12 }} className="items-center px-6">
+    <View
+      style={{ position: 'absolute', bottom: 0, left: 0, right: 0, paddingBottom: insets.bottom + 12 }}
+      className="items-center px-6"
+    >
       <View
-        style={shadowSmStrong}
-        className="flex-row bg-surface dark:bg-backgroundDark rounded-full border border-border dark:border-white/10 px-3 py-2"
+        style={{
+          backgroundColor: '#000000',
+          borderColor: 'rgba(255,255,255,0.12)',
+          borderWidth: 1,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 10,
+          elevation: 6,
+        }}
+        className="flex-row rounded-full px-3 py-2"
       >
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -51,11 +59,10 @@ export function AppTabBar({ state, descriptors, navigation, insets }: BottomTabB
               accessibilityRole="button"
               accessibilityLabel={label}
               accessibilityState={{ selected: isFocused }}
-              className={`w-12 h-12 rounded-full items-center justify-center mx-1 ${
-                isFocused ? 'bg-primary' : ''
-              }`}
+              style={{ backgroundColor: isFocused ? '#3D2834' : 'transparent' }}
+              className="w-12 h-12 rounded-full items-center justify-center mx-1"
             >
-              <FontAwesome name={icon} size={18} color={isFocused ? '#FFFFFF' : colors.textSecondary} />
+              <FontAwesome name={icon} size={18} color={isFocused ? '#FFFFFF' : '#9CA3AF'} />
             </TouchableOpacity>
           );
         })}

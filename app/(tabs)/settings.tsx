@@ -36,7 +36,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background dark:bg-backgroundDark">
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 110 }}>
         <Text className="text-heading font-serif-bold text-textOnLight dark:text-textOnDark mt-4 mb-6">
           Settings
         </Text>

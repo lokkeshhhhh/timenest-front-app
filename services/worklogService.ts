@@ -1,3 +1,9 @@
+import { api } from './api';
+
 export const worklogService = {
-  // worklog API calls
+  /** All worklogs visible to the current user (own only, unless they hold worklog.view/approve org-wide). */
+  list: async () => {
+    const response = await api.get('/api/v1/organization/attendance/worklogs');
+    return response.data;
+  },
 };

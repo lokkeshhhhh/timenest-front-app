@@ -1,19 +1,27 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 import { useAuthStore } from '../../store/authStore';
 import { useOrgStore, useIsMultiOrg } from '../../store/orgStore';
-import { usePermission, useAnyPermission } from '../../store/permissionStore';
+import { usePermission } from '../../store/permissionStore';
 import { PERMISSIONS } from '../../constants/permissions';
 import { attendanceService } from '../../services/attendanceService';
+import { worklogService } from '../../services/worklogService';
 import { refreshSession } from '../../hooks/useBootstrapSession';
+import {
+  getCurrentLocation,
+  LocationPermissionDeniedError,
+  LocationServicesDisabledError,
+  LocationUnavailableError,
+} from '../../utils/location';
+import { formatMinutesAsHours } from '../../utils/format';
 import { Avatar } from '../../components/ui/Avatar';
 import { ModuleCard } from '../../components/ui/ModuleCard';
 import { StatCard } from '../../components/ui/StatCard';
-import { formatMinutesAsHours, formatTime } from '../../utils/format';
+import { AttendanceStatusCard } from '../../components/ui/AttendanceStatusCard';
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -21,6 +29,8 @@ function greeting(): string {
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
 }
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -30,21 +40,15 @@ export default function HomeScreen() {
 
   // Every visibility decision below is gated on a permission string, never on role.
   const canViewAttendance = usePermission(PERMISSIONS.ATTENDANCE_VIEW);
+  const canClockAttendance = usePermission(PERMISSIONS.ATTENDANCE_CREATE);
   const canViewLeaves = usePermission(PERMISSIONS.LEAVES_VIEW);
   const canViewWorklog = usePermission(PERMISSIONS.WORKLOG_VIEW);
-  const canSeeApprovals = useAnyPermission([
-    PERMISSIONS.ATTENDANCE_APPROVE,
-    PERMISSIONS.ATTENDANCE_APPROVE_ANY,
-    PERMISSIONS.WORKLOG_APPROVE,
-    PERMISSIONS.WORKLOG_APPROVE_ANY,
-    PERMISSIONS.LEAVES_APPROVE,
-    PERMISSIONS.LEAVES_APPROVE_ANY,
-  ]);
-  const showStats = canSeeApprovals || canViewWorklog;
   const hasAnyModule = canViewAttendance || canViewLeaves || canViewWorklog;
 
   const [today, setToday] = useState<any>(null);
   const [loadingToday, setLoadingToday] = useState(false);
+  const [clockActionLoading, setClockActionLoading] = useState(false);
+  const [worklogHoursThisWeek, setWorklogHoursThisWeek] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadToday = useCallback(async () => {
@@ -60,41 +64,90 @@ export default function HomeScreen() {
     }
   }, [canViewAttendance]);
 
+  const loadWorklogStat = useCallback(async () => {
+    if (!canViewWorklog) return;
+    try {
+      const envelope = await worklogService.list();
+      const worklogs = envelope.data ?? [];
+      const cutoff = Date.now() - SEVEN_DAYS_MS;
+      const minutes = worklogs
+        .filter((w: any) => w.start_time && new Date(w.start_time).getTime() >= cutoff)
+        .reduce((sum: number, w: any) => sum + (w.logged_minutes ?? 0), 0);
+      setWorklogHoursThisWeek(minutes);
+    } catch {
+      setWorklogHoursThisWeek(null);
+    }
+  }, [canViewWorklog]);
+
   useEffect(() => {
     loadToday();
-  }, [loadToday]);
+    loadWorklogStat();
+  }, [loadToday, loadWorklogStat]);
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refreshSession(), loadToday()]);
+    await Promise.all([refreshSession(), loadToday(), loadWorklogStat()]);
     setRefreshing(false);
+  };
+
+  const handleClockAction = async (action: 'in' | 'out') => {
+    setClockActionLoading(true);
+    try {
+      const location = await getCurrentLocation();
+      if (action === 'in') {
+        await attendanceService.clockIn(location);
+      } else {
+        await attendanceService.clockOut(location);
+      }
+      await loadToday();
+    } catch (e: any) {
+      if (e instanceof LocationServicesDisabledError) {
+        Alert.alert('Location services off', e.message);
+      } else if (e instanceof LocationPermissionDeniedError) {
+        Alert.alert('Location permission denied', e.message);
+      } else if (e instanceof LocationUnavailableError) {
+        Alert.alert('Location unavailable', e.message);
+      } else if (e.response?.status === 403 || e.response?.status === 422) {
+        // A real server-side rejection — distinct from any of the on-device
+        // location problems above. 403 = no attendance.create permission;
+        // 422 = a business rule (BusinessRuleViolationException) like
+        // PROFILE_NOT_FOUND, NO_POLICY_CONFIGURED, ACTIVE_SESSION_EXISTS,
+        // LOCATION_REQUIRED, etc. error_code pinpoints exactly which one.
+        Alert.alert(
+          'Not allowed',
+          `${e.response?.data?.message || 'You do not have permission to do this.'}${
+            e.response?.data?.error_code ? `\n\n(${e.response.data.error_code})` : ''
+          }`
+        );
+      } else {
+        Alert.alert('Error', e.response?.data?.message || `Could not clock ${action}.`);
+      }
+    } finally {
+      setClockActionLoading(false);
+    }
   };
 
   const firstName = user?.first_name || user?.name?.split(' ')[0] || 'there';
   const orgName = activeOrg?.trading_name || activeOrg?.legal_name;
-  const lastSession = today?.sessions?.[today.sessions.length - 1];
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 110 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {/* Greeting + active-org indicator (permission: none — identity only) */}
-        <View className="flex-row items-center justify-between mt-4 mb-6">
+        {/* Greeting + avatar + notifications (display-only) */}
+        <View className="flex-row items-center justify-between mt-4 mb-2">
           <View className="flex-1 pr-4">
-            <Text className="text-label text-textSecondaryLight dark:text-textSecondaryDark">
-              {greeting()}
-            </Text>
             <Text
-              className="text-heading font-serif-bold text-textOnLight dark:text-textOnDark"
+              className="text-subheading font-serif-bold text-textOnLight dark:text-textOnDark"
               numberOfLines={1}>
-              {firstName}
+              {greeting()}, {firstName} 👋
             </Text>
             <TouchableOpacity
               disabled={!isMultiOrg}
               onPress={() => router.push('/workspace-switch')}
-              className="flex-row items-center mt-1.5">
+              className="flex-row items-center mt-1">
               <Text
                 className="text-label text-textSecondaryLight dark:text-textSecondaryDark"
                 numberOfLines={1}>
@@ -105,98 +158,81 @@ export default function HomeScreen() {
               )}
             </TouchableOpacity>
           </View>
-          <Avatar name={user?.name || firstName} url={user?.avatar_url} size={52} />
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              onPress={() => Alert.alert('Notifications', 'Coming soon.')}
+              className="w-11 h-11 rounded-full bg-surfaceGray dark:bg-surfaceGrayDark items-center justify-center mr-3">
+              <FontAwesome name="bell-o" size={17} color="#8FA0B5" />
+            </TouchableOpacity>
+            <Avatar name={user?.name || firstName} url={user?.avatar_url} size={44} />
+          </View>
         </View>
 
-        {/* Attendance status — gated on attendance.view, hidden for freelancers/no-org */}
-        {canViewAttendance && (
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push('/attendance')}
-            className="bg-surfaceLight dark:bg-white/5 rounded-card p-5 border border-border dark:border-white/10 mb-5">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-label font-serif-semibold text-textSecondaryLight dark:text-textSecondaryDark uppercase">
-                Today
-              </Text>
-              <FontAwesome name="angle-right" size={18} color="#C7CDD6" />
-            </View>
-            {today ? (
-              <>
-                <Text className="text-subheading font-serif-bold text-textOnLight dark:text-textOnDark mb-3">
-                  {today.attendance_status?.label ?? 'Recorded'}
-                </Text>
-                <View className="flex-row justify-between">
-                  <View>
-                    <Text className="text-caption text-textSecondaryLight dark:text-textSecondaryDark mb-1">
-                      Clock in
-                    </Text>
-                    <Text className="text-body font-serif-semibold text-textOnLight dark:text-textOnDark">
-                      {formatTime(today.sessions?.[0]?.clock_in_at)}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text className="text-caption text-textSecondaryLight dark:text-textSecondaryDark mb-1">
-                      Clock out
-                    </Text>
-                    <Text className="text-body font-serif-semibold text-textOnLight dark:text-textOnDark">
-                      {formatTime(lastSession?.clock_out_at)}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text className="text-caption text-textSecondaryLight dark:text-textSecondaryDark mb-1">
-                      Worked
-                    </Text>
-                    <Text className="text-body font-serif-semibold text-textOnLight dark:text-textOnDark">
-                      {formatMinutesAsHours(today.total_work_minutes)}
-                    </Text>
-                  </View>
-                </View>
-              </>
-            ) : (
-              <Text className="text-body text-textSecondaryLight dark:text-textSecondaryDark">
-                {loadingToday ? 'Loading…' : 'No clock-in recorded today.'}
-              </Text>
-            )}
-          </TouchableOpacity>
-        )}
+        <View className="mt-4">
+          {/* Attendance status + real Clock In/Out — gated on attendance.view */}
+          {canViewAttendance && (
+            <AttendanceStatusCard
+              today={today}
+              loading={loadingToday}
+              canClock={canClockAttendance}
+              clockActionLoading={clockActionLoading}
+              onClockIn={() => handleClockAction('in')}
+              onClockOut={() => handleClockAction('out')}
+            />
+          )}
 
-        {/* Summary stats — gated on *.approve/*.approve_any and worklog.view respectively */}
-        {showStats && (
-          <View className="flex-row mb-1" style={{ gap: 12 }}>
-            {canSeeApprovals && (
-              <StatCard label="Pending approvals" value="–" trendLabel="Live count coming soon" />
+          {/* Worklog hours — real data from GET /attendance/worklogs, gated worklog.view */}
+          {canViewWorklog && (
+            <View className="flex-row mb-1" style={{ gap: 12 }}>
+              <StatCard
+                label="Worklog hours"
+                value={formatMinutesAsHours(worklogHoursThisWeek)}
+                trendLabel="Last 7 days"
+              />
+            </View>
+          )}
+
+          <Text className="text-label font-serif-semibold text-textSecondaryLight dark:text-textSecondaryDark uppercase mb-3 mt-2">
+            Modules
+          </Text>
+          <View className="flex-row flex-wrap justify-between">
+            {canViewAttendance && (
+              <ModuleCard
+                icon="clock-o"
+                label="Attendance"
+                description="Clock in/out and view your history"
+                onPress={() => router.push('/attendance')}
+              />
+            )}
+            {canViewLeaves && (
+              <ModuleCard
+                icon="calendar"
+                label="Leave"
+                description="Apply for and track leave requests"
+                onPress={() => router.push('/leave')}
+              />
             )}
             {canViewWorklog && (
-              <StatCard label="Worklog hours" value="–" trendLabel="This week · coming soon" />
+              <ModuleCard
+                icon="file-text-o"
+                label="Worklogs"
+                description="Review logged work hours"
+                onPress={() => router.push('/worklogs')}
+              />
             )}
+            <ModuleCard icon="users" label="Shift Management" description="Team scheduling" disabled badge="Soon" />
+            <ModuleCard icon="bar-chart" label="Reports" description="Org-wide analytics" disabled badge="Soon" />
           </View>
-        )}
 
-        <Text className="text-label font-serif-semibold text-textSecondaryLight dark:text-textSecondaryDark uppercase mb-3 mt-2">
-          Modules
-        </Text>
-        <View className="flex-row flex-wrap justify-between">
-          {canViewAttendance && (
-            <ModuleCard icon="clock-o" label="Attendance" onPress={() => router.push('/attendance')} />
+          {!hasAnyModule && (
+            <View className="items-center mt-8 px-4">
+              <Text className="text-body text-textSecondaryLight dark:text-textSecondaryDark text-center leading-6">
+                Nothing to show yet — once you're added to a team with modules assigned, they'll appear
+                here.
+              </Text>
+            </View>
           )}
-          {canViewLeaves && (
-            <ModuleCard icon="calendar" label="Leave" onPress={() => router.push('/leave')} />
-          )}
-          {canViewWorklog && (
-            <ModuleCard icon="file-text-o" label="Worklogs" onPress={() => router.push('/worklogs')} />
-          )}
-          <ModuleCard icon="users" label="Shift Management" disabled badge="Soon" />
-          <ModuleCard icon="bar-chart" label="Reports" disabled badge="Soon" />
         </View>
-
-        {!hasAnyModule && (
-          <View className="items-center mt-8 px-4">
-            <Text className="text-body text-textSecondaryLight dark:text-textSecondaryDark text-center leading-6">
-              Nothing to show yet — once you're added to a team with modules assigned, they'll appear
-              here.
-            </Text>
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );

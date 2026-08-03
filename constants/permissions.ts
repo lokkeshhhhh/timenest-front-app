@@ -5,6 +5,7 @@
  */
 export const PERMISSIONS = {
   ATTENDANCE_VIEW: 'attendance.view',
+  ATTENDANCE_CREATE: 'attendance.create',
   ATTENDANCE_APPROVE: 'attendance.approve',
   ATTENDANCE_APPROVE_ANY: 'attendance.approve_any',
   WORKLOG_VIEW: 'worklog.view',

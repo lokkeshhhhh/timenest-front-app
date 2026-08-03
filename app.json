@@ -35,7 +35,13 @@
           "backgroundColor": "#0A0A0A"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Arcana uses your location to verify clock-in/clock-out happens at an approved workplace."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
