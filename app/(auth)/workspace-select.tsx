@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Alert, Image, ScrollView } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
@@ -9,6 +9,7 @@ import { AuthHeader } from '../../components/brand/AuthHeader';
 import { useAuthStore } from '../../store/authStore';
 import { applySessionData } from '../../utils/session';
 import { resolveAvatarUrl } from '../../utils/avatar';
+import { showAppModal } from '../../store/modalStore';
 
 // Rotated across org cards so consecutive cards don't show the identical photo.
 const WORKSPACE_PHOTOS = [
@@ -40,7 +41,11 @@ export default function WorkspaceSelectScreen() {
       clearTempAuth();
       router.replace('/(tabs)/');
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.message || 'Failed to select organization');
+      showAppModal({
+        variant: 'error',
+        title: 'Could not continue',
+        message: e.response?.data?.message || 'Failed to select organization.',
+      });
     } finally {
       setSubmitting(false);
     }

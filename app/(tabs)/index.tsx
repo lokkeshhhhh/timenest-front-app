@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
@@ -11,6 +11,7 @@ import { PERMISSIONS } from '../../constants/permissions';
 import { attendanceService } from '../../services/attendanceService';
 import { worklogService } from '../../services/worklogService';
 import { refreshSession } from '../../hooks/useBootstrapSession';
+import { showAppModal } from '../../store/modalStore';
 import {
   getCurrentLocation,
   LocationPermissionDeniedError,
@@ -102,25 +103,30 @@ export default function HomeScreen() {
       await loadToday();
     } catch (e: any) {
       if (e instanceof LocationServicesDisabledError) {
-        Alert.alert('Location services off', e.message);
+        showAppModal({ variant: 'warning', title: 'Location services off', message: e.message });
       } else if (e instanceof LocationPermissionDeniedError) {
-        Alert.alert('Location permission denied', e.message);
+        showAppModal({ variant: 'warning', title: 'Location permission denied', message: e.message });
       } else if (e instanceof LocationUnavailableError) {
-        Alert.alert('Location unavailable', e.message);
+        showAppModal({ variant: 'warning', title: 'Location unavailable', message: e.message });
       } else if (e.response?.status === 403 || e.response?.status === 422) {
         // A real server-side rejection — distinct from any of the on-device
         // location problems above. 403 = no attendance.create permission;
         // 422 = a business rule (BusinessRuleViolationException) like
         // PROFILE_NOT_FOUND, NO_POLICY_CONFIGURED, ACTIVE_SESSION_EXISTS,
         // LOCATION_REQUIRED, etc. error_code pinpoints exactly which one.
-        Alert.alert(
-          'Not allowed',
-          `${e.response?.data?.message || 'You do not have permission to do this.'}${
+        showAppModal({
+          variant: 'error',
+          title: 'Not allowed',
+          message: `${e.response?.data?.message || 'You do not have permission to do this.'}${
             e.response?.data?.error_code ? `\n\n(${e.response.data.error_code})` : ''
-          }`
-        );
+          }`,
+        });
       } else {
-        Alert.alert('Error', e.response?.data?.message || `Could not clock ${action}.`);
+        showAppModal({
+          variant: 'error',
+          title: 'Error',
+          message: e.response?.data?.message || `Could not clock ${action}.`,
+        });
       }
     } finally {
       setClockActionLoading(false);
@@ -160,7 +166,7 @@ export default function HomeScreen() {
           </View>
           <View className="flex-row items-center">
             <TouchableOpacity
-              onPress={() => Alert.alert('Notifications', 'Coming soon.')}
+              onPress={() => showAppModal({ variant: 'info', title: 'Notifications', message: 'Coming soon.' })}
               className="w-11 h-11 rounded-full bg-surfaceGray dark:bg-surfaceGrayDark items-center justify-center mr-3">
               <FontAwesome name="bell-o" size={17} color="#8FA0B5" />
             </TouchableOpacity>

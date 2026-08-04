@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, Text } from 'react-native';
+import { ScrollView, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -9,6 +9,7 @@ import { useOrgStore } from '../store/orgStore';
 import { AuthService } from '../services/auth';
 import { applySessionData } from '../utils/session';
 import { resolveAvatarUrl } from '../utils/avatar';
+import { showAppModal } from '../store/modalStore';
 
 export default function WorkspaceSwitchScreen() {
   const router = useRouter();
@@ -25,7 +26,11 @@ export default function WorkspaceSwitchScreen() {
       applySessionData(data);
       router.back();
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.message || 'Failed to switch workspace.');
+      showAppModal({
+        variant: 'error',
+        title: 'Could not switch workspace',
+        message: e.response?.data?.message || 'Failed to switch workspace.',
+      });
     } finally {
       setSwitchingTo(null);
     }

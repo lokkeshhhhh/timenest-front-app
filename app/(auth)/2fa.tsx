@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
@@ -15,6 +15,7 @@ export default function TwoFactorScreen() {
   const { tempToken } = useLocalSearchParams();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [codeError, setCodeError] = useState('');
   const setTempAuth = useAuthStore(state => state.setTempAuth);
 
   const handleVerify = async () => {
@@ -33,7 +34,7 @@ export default function TwoFactorScreen() {
         router.replace('/(tabs)/');
       }
     } catch (e: any) {
-      Alert.alert('Verification Failed', e.response?.data?.message || 'Invalid code');
+      setCodeError(e.response?.data?.message || 'Invalid code');
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,8 @@ export default function TwoFactorScreen() {
           <OtpInput
             length={6}
             value={code}
-            onChangeText={setCode}
+            onChangeText={(val) => { setCode(val); setCodeError(''); }}
+            error={codeError}
           />
 
           <PrimaryButton

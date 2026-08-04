@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -8,30 +8,36 @@ import { clearSession } from '../../utils/session';
 import { MenuRow } from '../../components/ui/MenuRow';
 import { SectionLabel } from '../../components/ui/SectionLabel';
 import { ThemeToggle } from '../../components/ui/ThemeToggle';
+import { showAppModal } from '../../store/modalStore';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = () => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: async () => {
-          setSigningOut(true);
-          try {
-            await AuthService.logout();
-          } catch {
-            // best-effort — clear the local session regardless of server outcome
-          } finally {
-            clearSession();
-            router.replace('/(auth)/login');
-          }
+    showAppModal({
+      variant: 'warning',
+      title: 'Sign out',
+      message: 'Are you sure you want to sign out?',
+      actions: [
+        { label: 'Cancel' },
+        {
+          label: 'Sign out',
+          destructive: true,
+          onPress: async () => {
+            setSigningOut(true);
+            try {
+              await AuthService.logout();
+            } catch {
+              // best-effort — clear the local session regardless of server outcome
+            } finally {
+              clearSession();
+              router.replace('/(auth)/login');
+            }
+          },
         },
-      },
-    ]);
+      ],
+    });
   };
 
   return (

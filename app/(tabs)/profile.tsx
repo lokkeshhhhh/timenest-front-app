@@ -1,7 +1,9 @@
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { showAppModal } from '../../store/modalStore';
 
 import { useAuthStore } from '../../store/authStore';
 import { useOrgStore, useIsMultiOrg } from '../../store/orgStore';
@@ -33,9 +35,16 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 110 }}>
-        <Text className="text-heading font-serif-bold text-textOnLight dark:text-textOnDark mt-4 mb-6">
-          Profile
-        </Text>
+        <View className="flex-row items-center justify-between mt-4 mb-6">
+          <Text className="text-heading font-serif-bold text-textOnLight dark:text-textOnDark">
+            Profile
+          </Text>
+          <TouchableOpacity
+            onPress={() => showAppModal({ variant: 'info', title: 'Notifications', message: 'Coming soon.' })}
+            className="w-11 h-11 rounded-full bg-surfaceGray dark:bg-surfaceGrayDark items-center justify-center">
+            <FontAwesome name="bell-o" size={17} color="#8FA0B5" />
+          </TouchableOpacity>
+        </View>
 
         {/* Identity card */}
         <View className="bg-surfaceLight dark:bg-white/5 rounded-card p-5 border border-border dark:border-white/10 items-center mb-2">

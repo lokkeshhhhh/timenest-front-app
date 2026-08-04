@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
 import { AppTextInput } from '../../components/ui/AppTextInput';
@@ -11,6 +11,8 @@ import { BlurView } from 'expo-blur';
 import { StyleSheet } from 'react-native';
 import { useTheme } from '../../hooks/useTheme';
 import { shadowLg } from '../../constants/shadows';
+import { extractFieldErrors, hasFieldErrors } from '../../utils/formErrors';
+import { showAppModal } from '../../store/modalStore';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -38,13 +40,8 @@ export default function ResetPasswordScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!email || !token) {
-      Alert.alert('Error', 'Missing reset token or email. Please request a new reset link.');
-      return;
-    }
-    
     if (!validatePassword()) return;
-    
+
     setLoading(true);
     try {
       await AuthService.resetPassword({
@@ -53,13 +50,23 @@ export default function ResetPasswordScreen() {
         password,
         password_confirmation: passwordConfirmation
       });
-      
-      Alert.alert('Success', 'Your password has been reset successfully. You can now sign in.', [
-        { text: 'Go to Login', onPress: () => router.replace('/(auth)/login') }
-      ]);
+
+      showAppModal({
+        variant: 'success',
+        title: 'Password reset',
+        message: 'Your password has been reset successfully. You can now sign in.',
+        actions: [{ label: 'Go to login', onPress: () => router.replace('/(auth)/login') }],
+      });
     } catch (e: any) {
-      const errData = e.response?.data || {};
-      Alert.alert('Error', errData.message || 'Failed to reset password. The link may have expired.');
+      if (hasFieldErrors(e)) {
+        setErrors(extractFieldErrors(e));
+      } else {
+        showAppModal({
+          variant: 'error',
+          title: 'Could not reset password',
+          message: e.response?.data?.message || 'The link may have expired. Please request a new one.',
+        });
+      }
     } finally {
       setLoading(false);
     }

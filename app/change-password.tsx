@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -7,6 +7,8 @@ import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { AppTextInput } from '../components/ui/AppTextInput';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { AuthService } from '../services/auth';
+import { extractFieldErrors } from '../utils/formErrors';
+import { showAppModal } from '../store/modalStore';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
@@ -24,16 +26,16 @@ export default function ChangePasswordScreen() {
     setLoading(true);
     try {
       await AuthService.changePassword(currentPassword, password, confirmPassword);
-      Alert.alert('Success', 'Your password has been changed.', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      showAppModal({
+        variant: 'success',
+        title: 'Password changed',
+        message: 'Your password has been changed.',
+        actions: [{ label: 'OK', onPress: () => router.back() }],
+      });
     } catch (e: any) {
-      const errData = e.response?.data || {};
-      const firstFieldError =
-        errData.errors && typeof errData.errors === 'object'
-          ? (Object.values(errData.errors)[0] as string[])?.[0]
-          : undefined;
-      setError(firstFieldError || errData.message || 'Failed to change password.');
+      const fieldErrors = extractFieldErrors(e);
+      const firstFieldError = Object.values(fieldErrors)[0];
+      setError(firstFieldError || e.response?.data?.message || 'Failed to change password.');
     } finally {
       setLoading(false);
     }

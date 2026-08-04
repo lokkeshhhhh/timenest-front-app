@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
@@ -9,6 +9,9 @@ import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
 import { AuthHeader } from '../../components/brand/AuthHeader';
 import { useAuthStore } from '../../store/authStore';
 import { applySessionData } from '../../utils/session';
+import { showAppModal } from '../../store/modalStore';
+import { extractFieldErrors, hasFieldErrors } from '../../utils/formErrors';
+import { isValidEmail } from '../../utils/validators';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -16,9 +19,16 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
   const handleLogin = async () => {
     if (!email || !password) return;
+
+    if (!isValidEmail(email)) {
+      setEmailError('Enter a valid email address');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -35,10 +45,11 @@ export default function LoginScreen() {
         // zero organization memberships (see AuthService::resolveWorkspaceAndIssueTokens),
         // so there is no session to hand to the tab shell here — surface it inline
         // instead of silently calling setAuth(undefined, user).
-        Alert.alert(
-          'No workspace yet',
-          data.message || 'You may need an invitation to join an organization.'
-        );
+        showAppModal({
+          variant: 'info',
+          title: 'No workspace yet',
+          message: data.message || 'You may need an invitation to join an organization.',
+        });
       } else {
         // Normal success
         applySessionData(data);
@@ -47,7 +58,7 @@ export default function LoginScreen() {
     } catch (e: any) {
       const errData = e.response?.data || {};
       const meta = errData.meta || {};
-      
+
       if (meta.requires_workspace_selection) {
         setTempAuth(meta.temp_token, meta.workspaces || []);
         router.push('/(auth)/workspace-select');
@@ -55,9 +66,22 @@ export default function LoginScreen() {
       }
 
       if (e.response?.status === 403 && errData.message?.includes('verified')) {
-        Alert.alert('Unverified Account', 'Please check your email to verify your account.');
+        showAppModal({
+          variant: 'warning',
+          title: 'Unverified account',
+          message: 'Please check your email to verify your account.',
+        });
+      } else if (hasFieldErrors(e)) {
+        // A real 422 (e.g. LoginRequest's `email`/`min:8` rules) — show the
+        // ACTUAL per-field message instead of the generic "Validation
+        // failed" wrapper that errData.message holds for every 422.
+        const fieldErrors = extractFieldErrors(e);
+        setEmailError(fieldErrors.email || '');
+        setPasswordError(fieldErrors.password || (!fieldErrors.email ? Object.values(fieldErrors)[0] : ''));
       } else {
-        Alert.alert('Login Failed', errData.message || e.message);
+        // Tied to the email/password combo, so it belongs inline on the
+        // form rather than in a modal — not a generic action failure.
+        setPasswordError(errData.message || e.message || 'Invalid email or password.');
       }
     } finally {
       setLoading(false);
@@ -84,17 +108,19 @@ export default function LoginScreen() {
           label="Email Address"
           placeholder="johndoe@gmail.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(val) => { setEmail(val); setEmailError(''); }}
           keyboardType="email-address"
           autoCapitalize="none"
+          error={emailError}
         />
 
         <AppTextInput
           label="Password"
           placeholder="••••••"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(val) => { setPassword(val); setPasswordError(''); }}
           secureTextEntry
+          error={passwordError}
         />
 
         <View className="flex-row justify-between items-center mb-8 w-full px-1">
@@ -123,8 +149,8 @@ export default function LoginScreen() {
 
         <View className="items-center mb-4 mt-8">
           <SocialLoginRow
-            onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
-            onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
+            onGooglePress={() => showAppModal({ variant: 'info', title: 'Google', message: 'Google OAuth pressed' })}
+            onFacebookPress={() => showAppModal({ variant: 'info', title: 'Facebook', message: 'Facebook OAuth pressed' })}
           />
         </View>
       </ScrollView>

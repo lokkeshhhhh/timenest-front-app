@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -7,6 +7,7 @@ import { ScreenHeader } from '../components/ui/ScreenHeader';
 import { OtpInput } from '../components/ui/OtpInput';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { twoFactorService } from '../services/twoFactorService';
+import { showAppModal } from '../store/modalStore';
 
 type PendingAction = null | 'disable' | 'regenerate';
 
@@ -18,12 +19,14 @@ export default function TwoFactorScreen() {
   // Enrollment flow
   const [setupData, setSetupData] = useState<{ manual_entry_key: string; qr_code_url: string } | null>(null);
   const [setupCode, setSetupCode] = useState('');
+  const [setupCodeError, setSetupCodeError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
 
   // Disable / regenerate flow (both need a fresh code)
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
   const [actionCode, setActionCode] = useState('');
+  const [actionCodeError, setActionCodeError] = useState('');
 
   const loadStatus = async () => {
     setLoadingStatus(true);
@@ -47,7 +50,11 @@ export default function TwoFactorScreen() {
       const envelope = await twoFactorService.initiateSetup();
       setSetupData(envelope.data ?? envelope);
     } catch (e: any) {
-      Alert.alert('Error', e.response?.data?.message || 'Could not start 2FA setup.');
+      showAppModal({
+        variant: 'error',
+        title: 'Could not start setup',
+        message: e.response?.data?.message || 'Could not start 2FA setup.',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -64,7 +71,7 @@ export default function TwoFactorScreen() {
       setSetupData(null);
       setSetupCode('');
     } catch (e: any) {
-      Alert.alert('Invalid code', e.response?.data?.message || 'That code did not match. Try again.');
+      setSetupCodeError(e.response?.data?.message || 'That code did not match. Try again.');
     } finally {
       setSubmitting(false);
     }
@@ -77,7 +84,7 @@ export default function TwoFactorScreen() {
       if (pendingAction === 'disable') {
         await twoFactorService.disable(actionCode);
         setEnabled(false);
-        Alert.alert('2FA disabled');
+        showAppModal({ variant: 'success', title: 'Two-factor authentication disabled' });
       } else {
         const envelope = await twoFactorService.regenerateRecoveryCodes(actionCode);
         const data = envelope.data ?? envelope;
@@ -86,7 +93,7 @@ export default function TwoFactorScreen() {
       setPendingAction(null);
       setActionCode('');
     } catch (e: any) {
-      Alert.alert('Invalid code', e.response?.data?.message || 'That code did not match. Try again.');
+      setActionCodeError(e.response?.data?.message || 'That code did not match. Try again.');
     } finally {
       setSubmitting(false);
     }
@@ -139,7 +146,11 @@ export default function TwoFactorScreen() {
                 {setupData.manual_entry_key}
               </Text>
             </View>
-            <OtpInput value={setupCode} onChangeText={setSetupCode} />
+            <OtpInput
+              value={setupCode}
+              onChangeText={(val) => { setSetupCode(val); setSetupCodeError(''); }}
+              error={setupCodeError}
+            />
             <PrimaryButton
               title="Confirm & enable"
               onPress={confirmSetup}
@@ -155,7 +166,11 @@ export default function TwoFactorScreen() {
             <Text className="text-body text-textSecondaryLight dark:text-textSecondaryDark mb-4 leading-6">
               Enter the current 6-digit code from your authenticator app.
             </Text>
-            <OtpInput value={actionCode} onChangeText={setActionCode} />
+            <OtpInput
+              value={actionCode}
+              onChangeText={(val) => { setActionCode(val); setActionCodeError(''); }}
+              error={actionCodeError}
+            />
             <PrimaryButton
               title="Confirm"
               onPress={submitPendingAction}
@@ -170,12 +185,12 @@ export default function TwoFactorScreen() {
             </View>
             <PrimaryButton
               title="Regenerate recovery codes"
-              onPress={() => setPendingAction('regenerate')}
+              onPress={() => { setActionCodeError(''); setPendingAction('regenerate'); }}
               className="mb-3"
             />
             <PrimaryButton
               title="Disable 2FA"
-              onPress={() => setPendingAction('disable')}
+              onPress={() => { setActionCodeError(''); setPendingAction('disable'); }}
               className="bg-error"
             />
           </View>

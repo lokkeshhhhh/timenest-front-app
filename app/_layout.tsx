@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSplashStore } from '@/store/splashStore';
 import { AnimatedSplashScreen } from '@/components/splash/AnimatedSplashScreen';
 import { ThemeSync } from '@/components/ThemeSync';
+import { AppModal } from '@/components/ui/AppModal';
 import paletteRaw from '@/constants/paletteRaw';
 
 // React Navigation's stock DefaultTheme/DarkTheme paint their own
@@ -82,6 +83,7 @@ function RootLayoutNav() {
             }}
           />
         )}
+        <AppModal />
       </ThemeProvider>
     </SafeAreaProvider>
   );

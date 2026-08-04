@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
@@ -8,6 +8,9 @@ import { AppTextInput } from '../../components/ui/AppTextInput';
 import { AuthHeader } from '../../components/brand/AuthHeader';
 import { SocialLoginRow } from '../../components/ui/SocialLoginRow';
 import { getAccountTypeVisual } from '../../utils/accountType';
+import { extractFieldErrors, hasFieldErrors } from '../../utils/formErrors';
+import { showAppModal } from '../../store/modalStore';
+import { isValidEmail } from '../../utils/validators';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -20,17 +23,28 @@ export default function RegisterScreen() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
   const [orgName, setOrgName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const isOrg = accountType === 'organization' || accountType === 'freelance_team';
   const visual = getAccountTypeVisual(accountType);
 
+  const clearFieldError = (field: string) => {
+    if (fieldErrors[field]) setFieldErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
   const handleRegister = async () => {
-    if (!name || !email || !password || !passwordConfirmation || (isOrg && !orgName)) {
-      Alert.alert('Error', 'Please fill in all required fields');
-      return;
+    const nextErrors: Record<string, string> = {};
+    if (!name) nextErrors.name = 'Full name is required';
+    if (!email) nextErrors.email = 'Email address is required';
+    else if (!isValidEmail(email)) nextErrors.email = 'Enter a valid email address';
+    if (!password) nextErrors.password = 'Password is required';
+    if (!passwordConfirmation) nextErrors.password_confirmation = 'Please confirm your password';
+    if (isOrg && !orgName) nextErrors.organization_name = 'Organization name is required';
+    if (password && passwordConfirmation && password !== passwordConfirmation) {
+      nextErrors.password_confirmation = 'Passwords do not match';
     }
-    if (password !== passwordConfirmation) {
-      Alert.alert('Error', 'Passwords do not match');
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
       return;
     }
 
@@ -47,8 +61,15 @@ export default function RegisterScreen() {
       // Registration sets user to PENDING_VERIFICATION.
       router.push('/(auth)/verify');
     } catch (e: any) {
-      // Very basic error handling for Phase 4. Will improve in Phase 6.
-      Alert.alert('Registration Failed', e.response?.data?.message || e.message);
+      if (hasFieldErrors(e)) {
+        setFieldErrors(extractFieldErrors(e));
+      } else {
+        showAppModal({
+          variant: 'error',
+          title: 'Registration failed',
+          message: e.response?.data?.message || e.message,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -74,37 +95,42 @@ export default function RegisterScreen() {
           label="Full Name"
           placeholder="John Doe"
           value={name}
-          onChangeText={setName}
+          onChangeText={(val) => { setName(val); clearFieldError('name'); }}
+          error={fieldErrors.name}
         />
         <AppTextInput
           label="Email Address"
           placeholder="johndoe@example.com"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(val) => { setEmail(val); clearFieldError('email'); }}
           keyboardType="email-address"
           autoCapitalize="none"
+          error={fieldErrors.email}
         />
         {isOrg && (
           <AppTextInput
             label="Organization Name"
             placeholder="Acme Corp"
             value={orgName}
-            onChangeText={setOrgName}
+            onChangeText={(val) => { setOrgName(val); clearFieldError('organization_name'); }}
+            error={fieldErrors.organization_name}
           />
         )}
         <AppTextInput
           label="Password"
           placeholder="••••••"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(val) => { setPassword(val); clearFieldError('password'); }}
           secureTextEntry
+          error={fieldErrors.password}
         />
         <AppTextInput
           label="Confirm Password"
           placeholder="••••••"
           value={passwordConfirmation}
-          onChangeText={setPasswordConfirmation}
+          onChangeText={(val) => { setPasswordConfirmation(val); clearFieldError('password_confirmation'); }}
           secureTextEntry
+          error={fieldErrors.password_confirmation}
         />
         
         <PrimaryButton
@@ -123,8 +149,8 @@ export default function RegisterScreen() {
 
         <View className="items-center mb-4 mt-8">
           <SocialLoginRow
-            onGooglePress={() => Alert.alert('Google', 'Google OAuth pressed')}
-            onFacebookPress={() => Alert.alert('Facebook', 'Facebook OAuth pressed')}
+            onGooglePress={() => showAppModal({ variant: 'info', title: 'Google', message: 'Google OAuth pressed' })}
+            onFacebookPress={() => showAppModal({ variant: 'info', title: 'Facebook', message: 'Facebook OAuth pressed' })}
           />
         </View>
       </ScrollView>

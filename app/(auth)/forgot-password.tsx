@@ -1,30 +1,46 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
 import { AppTextInput } from '../../components/ui/AppTextInput';
 import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { AuthHeader } from '../../components/brand/AuthHeader';
+import { extractFieldErrors, hasFieldErrors } from '../../utils/formErrors';
+import { showAppModal } from '../../store/modalStore';
+import { isValidEmail } from '../../utils/validators';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   const handleSubmit = async () => {
     if (!email) return;
-    
+
+    if (!isValidEmail(email)) {
+      setEmailError('Enter a valid email address');
+      return;
+    }
+
     setLoading(true);
     try {
       await AuthService.requestPasswordReset(email);
       setSuccess(true);
     } catch (e: any) {
-      // For security, most systems shouldn't reveal if email exists, 
+      // For security, most systems shouldn't reveal if email exists,
       // but if the backend throws validation errors (e.g. invalid format), we handle them here.
-      const errData = e.response?.data || {};
-      Alert.alert('Error', errData.message || 'Failed to request reset link.');
+      if (hasFieldErrors(e)) {
+        setEmailError(extractFieldErrors(e).email || '');
+      } else {
+        showAppModal({
+          variant: 'error',
+          title: 'Error',
+          message: e.response?.data?.message || 'Failed to request reset link.',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -64,10 +80,10 @@ export default function ForgotPasswordScreen() {
               label="Email Address"
               placeholder="name@company.com"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(val) => { setEmail(val); setEmailError(''); }}
               keyboardType="email-address"
               autoCapitalize="none"
-              error={undefined}
+              error={emailError}
             />
 
             <PrimaryButton

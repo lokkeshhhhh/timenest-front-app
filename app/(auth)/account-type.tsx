@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, ScrollView, Alert } from 'react-native';
+import { View, Text, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { AuthService } from '../../services/auth';
@@ -7,6 +7,7 @@ import { PrimaryButton } from '../../components/ui/PrimaryButton';
 import { ImageSelectCard } from '../../components/ui/ImageSelectCard';
 import { AuthHeader } from '../../components/brand/AuthHeader';
 import { getAccountTypeVisual } from '../../utils/accountType';
+import { showAppModal } from '../../store/modalStore';
 
 export default function AccountTypeScreen() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function AccountTypeScreen() {
       const res = await AuthService.fetchAccountTypes();
       setTypes(res.data || []);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to load account types');
+      showAppModal({ variant: 'error', title: 'Error', message: e.message || 'Failed to load account types' });
     } finally {
       setLoading(false);
     }
